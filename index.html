@@ -709,7 +709,7 @@ async function initTesseract() {
   progressFill.style.width = '10%';
 
   tesseractWorker = await Tesseract.createWorker('eng', 1, {
-    langPath: 'https://stanislavhoralek-ux.github.io/Dily-X2',
+    langPath: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng/4.0.0_best_int',
     cacheMethod: 'none',
     logger: m => {
       if (m.status === 'loading tesseract core') {
