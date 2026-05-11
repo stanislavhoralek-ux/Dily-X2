@@ -541,9 +541,6 @@
 
 <footer>SESTAVY X2 — DATABÁZE DÍLŮ</footer>
 
-<!-- Tesseract.js CDN -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
-
 <script>
 // ============================================================
 // DATABÁZE DÍLŮ (z Excel souboru)
@@ -685,11 +682,12 @@ document.getElementById('searchInput').addEventListener('keydown', e => {
 });
 
 // ============================================================
-// KAMERA + OCR (Tesseract.js)
+// KAMERA + OCR (Google Cloud Vision API)
 // ============================================================
+const VISION_API_KEY = 'AIzaSyD2X8U8cdc_GoKc_VqzlcxCFo209kBNGT0';
+const VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`;
+
 let stream = null;
-let tesseractWorker = null;
-let workerReady = false;
 
 const btnCamera = document.getElementById('btnCamera');
 const cameraContainer = document.getElementById('cameraContainer');
@@ -699,39 +697,9 @@ const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ocrStatus = document.getElementById('ocrStatus');
 const tesseractStatus = document.getElementById('tesseract-status');
-const tesseractMsg = document.getElementById('tesseractMsg');
-const progressFill = document.getElementById('progressFill');
 
-async function initTesseract() {
-  if (tesseractWorker) return;
-  tesseractStatus.style.display = 'block';
-  tesseractMsg.textContent = 'Načítám OCR engine...';
-  progressFill.style.width = '10%';
-
-  tesseractWorker = await Tesseract.createWorker('eng', 1, {
-    langPath: 'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng/4.0.0_best_int',
-    cacheMethod: 'none',
-    logger: m => {
-      if (m.status === 'loading tesseract core') {
-        tesseractMsg.textContent = 'Načítám jádro OCR...';
-        progressFill.style.width = '30%';
-      } else if (m.status === 'loading language traineddata') {
-        tesseractMsg.textContent = 'Načítám jazykový model...';
-        progressFill.style.width = '60%';
-      } else if (m.status === 'initialized api') {
-        tesseractMsg.textContent = 'OCR připraveno ✓';
-        progressFill.style.width = '100%';
-        workerReady = true;
-        setTimeout(() => { tesseractStatus.style.display = 'none'; }, 1500);
-      }
-    }
-  });
-
-  // Optimize for alphanumeric part numbers
-  await tesseractWorker.setParameters({
-    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-',
-  });
-}
+// Hide tesseract progress bar – not needed with Vision API
+tesseractStatus.style.display = 'none';
 
 btnCamera.addEventListener('click', async () => {
   cameraContainer.classList.add('active');
@@ -745,13 +713,11 @@ btnCamera.addEventListener('click', async () => {
     video.srcObject = stream;
     await video.play();
     btnCapture.disabled = false;
+    ocrStatus.textContent = 'Připraveno';
   } catch (err) {
     ocrStatus.textContent = 'Kamera nedostupná';
     console.error(err);
   }
-
-  // Init tesseract in background
-  initTesseract();
 });
 
 btnCloseCamera.addEventListener('click', stopCamera);
@@ -765,11 +731,6 @@ function stopCamera() {
 }
 
 btnCapture.addEventListener('click', async () => {
-  if (!workerReady) {
-    ocrStatus.textContent = 'Čekám na OCR...';
-    return;
-  }
-
   btnCapture.disabled = true;
   ocrStatus.textContent = 'Zpracovávám...';
 
@@ -779,11 +740,26 @@ btnCapture.addEventListener('click', async () => {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0);
 
-  try {
-    const { data: { text } } = await tesseractWorker.recognize(canvas);
-    const cleaned = text.replace(/\s+/g, ' ').trim().toUpperCase();
+  // Convert canvas to base64 (without prefix)
+  const base64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
 
-    // Try to find a matching part number in OCR text
+  try {
+    const response = await fetch(VISION_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [{
+          image: { content: base64 },
+          features: [{ type: 'TEXT_DETECTION', maxResults: 1 }]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const rawText = data.responses?.[0]?.fullTextAnnotation?.text || '';
+    const cleaned = rawText.replace(/\s+/g, ' ').trim().toUpperCase();
+
+    // Try to find exact match in DB
     let found = null;
     for (const part of DB) {
       if (cleaned.includes(part.Cislodilu.toUpperCase())) {
@@ -798,18 +774,18 @@ btnCapture.addEventListener('click', async () => {
       stopCamera();
       document.getElementById('btnSearch').click();
     } else {
-      // Use raw OCR text as fallback
-      const words = cleaned.split(/\s+/);
-      const bestWord = words.find(w => w.length >= 4) || cleaned.split(' ')[0];
+      // Use first meaningful word as fallback
+      const words = cleaned.split(/\s+/).filter(w => w.length >= 4);
+      const bestWord = words[0] || cleaned.split(' ')[0];
       document.getElementById('searchInput').value = bestWord;
       ocrStatus.textContent = `OCR: ${bestWord}`;
+      btnCapture.disabled = false;
     }
   } catch (err) {
-    ocrStatus.textContent = 'Chyba OCR';
+    ocrStatus.textContent = 'Chyba připojení';
+    btnCapture.disabled = false;
     console.error(err);
   }
-
-  btnCapture.disabled = false;
 });
 </script>
 </body>
