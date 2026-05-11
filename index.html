@@ -709,7 +709,7 @@ async function initTesseract() {
   progressFill.style.width = '10%';
 
   tesseractWorker = await Tesseract.createWorker('eng', 1, {
-    langPath: './',         // načti eng.traineddata.gz z téže složky
+    langPath: 'https://stanislavhoralek-ux.github.io/Dily-X2',
     cacheMethod: 'none',
     logger: m => {
       if (m.status === 'loading tesseract core') {
