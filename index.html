@@ -385,6 +385,43 @@
     letter-spacing: 1px;
   }
 
+  /* Reset button */
+  .btn-reset {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--error); color: var(--error); }
+
+  /* Assembly filter */
+  .assembly-select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 4px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237b8096' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    transition: border-color 0.2s;
+  }
+  .assembly-select:focus { border-color: var(--accent); }
+  .assembly-select option { background: var(--surface2); }
+
   /* OCR hint */
   .hint {
     font-size: 12px;
@@ -476,7 +513,9 @@
 <main>
   <!-- Search card -->
   <div class="search-card">
-    <span class="search-label">Číslo dílu</span>
+    <span class="search-label">Filtr sestavy</span>
+    <select id="assemblyFilter" class="assembly-select"><option value="">Všechny sestavy</option></select>
+    <span class="search-label" style="margin-top:14px;">Číslo dílu</span>
     <div class="search-row">
       <input
         type="text"
@@ -528,6 +567,7 @@
     <div class="results-header">
       <span class="results-label">Výsledky</span>
       <span class="results-count" id="resultsCount">0 nalezeno</span>
+      <button class="btn-reset" id="btnReset" title="Zpět na úvod">✕ Zpět</button>
     </div>
     <div id="resultsList"></div>
   </div>
@@ -536,6 +576,7 @@
   <div class="no-results" id="noResults">
     <div class="no-results-icon">⊘</div>
     <p>Díl <span class="searched-term" id="searchedTerm"></span> nebyl nalezen v databázi.</p>
+    <button class="btn-reset" id="btnReset2" style="margin-top:16px;">✕ Zpět</button>
   </div>
 </main>
 
@@ -616,10 +657,26 @@ const DB = [
 // ============================================================
 // VYHLEDÁVÁNÍ
 // ============================================================
+
+// Naplň dropdown sestavami
+const assemblies = [...new Set(DB.map(d => d.Sestava))].sort();
+const select = document.getElementById('assemblyFilter');
+assemblies.forEach(a => {
+  const opt = document.createElement('option');
+  opt.value = a;
+  opt.textContent = 'Sestava ' + a;
+  select.appendChild(opt);
+});
+
 function search(query) {
   const q = query.trim().toUpperCase().replace(/\s/g, '');
   if (!q) return [];
-  return DB.filter(d => d.Cislodilu.toUpperCase().includes(q));
+  const sestava = document.getElementById('assemblyFilter').value;
+  return DB.filter(d => {
+    const matchDil = d.Cislodilu.toUpperCase().includes(q);
+    const matchSestava = sestava === '' || d.Sestava === sestava;
+    return matchDil && matchSestava;
+  });
 }
 
 function showResults(results, query) {
@@ -680,6 +737,18 @@ document.getElementById('btnSearch').addEventListener('click', () => {
 document.getElementById('searchInput').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('btnSearch').click();
 });
+
+function resetApp() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('assemblyFilter').value = '';
+  document.getElementById('resultsContainer').classList.remove('active');
+  document.getElementById('noResults').classList.remove('active');
+  document.getElementById('loading').classList.remove('active');
+  document.getElementById('searchInput').focus();
+}
+
+document.getElementById('btnReset').addEventListener('click', resetApp);
+document.getElementById('btnReset2').addEventListener('click', resetApp);
 
 // ============================================================
 // KAMERA + OCR (Google Cloud Vision API)
@@ -774,12 +843,13 @@ btnCapture.addEventListener('click', async () => {
       stopCamera();
       document.getElementById('btnSearch').click();
     } else {
-      // Use first meaningful word as fallback
+      // Use first meaningful word as fallback and search automatically
       const words = cleaned.split(/\s+/).filter(w => w.length >= 4);
       const bestWord = words[0] || cleaned.split(' ')[0];
       document.getElementById('searchInput').value = bestWord;
       ocrStatus.textContent = `OCR: ${bestWord}`;
-      btnCapture.disabled = false;
+      stopCamera();
+      document.getElementById('btnSearch').click();
     }
   } catch (err) {
     ocrStatus.textContent = 'Chyba připojení';
