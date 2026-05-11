@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vyhledávač dílů X2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --text: #e8eaf0;
+    --text-muted: #7b8096;
+    --border: #2e3148;
+    --success: #00c896;
+    --error: #ff4757;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 1;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  header .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+
+  header .separator {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    padding: 24px 16px;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Search section */
+  .search-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .search-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-muted);
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+
+  .btn-camera {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    width: 52px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .btn-camera:hover { background: #00cfee; transform: scale(1.02); }
+  .btn-camera:active { transform: scale(0.97); }
+
+  .btn-camera svg { color: #0f1117; }
+
+  .btn-search {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-search:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Camera view */
+  .camera-container {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .camera-container.active { display: block; }
+
+  .camera-header {
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .camera-header span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .btn-close-camera {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+  .btn-close-camera:hover { color: var(--error); }
+
+  #video {
+    width: 100%;
+    display: block;
+    max-height: 280px;
+    object-fit: cover;
+    background: #000;
+  }
+
+  .camera-controls {
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn-capture {
+    flex: 1;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #0f1117;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-capture:hover { background: #00cfee; }
+  .btn-capture:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .ocr-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  #canvas { display: none; }
+
+  /* Results */
+  .results-container { display: none; }
+  .results-container.active { display: block; }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .results-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--success);
+    text-transform: uppercase;
+  }
+
+  .results-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+  }
+
+  .result-part-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    padding-left: 12px;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding-left: 12px;
+  }
+
+  .result-field {
+    background: var(--surface2);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .result-field-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .result-field-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .result-field.highlight .result-field-value {
+    color: var(--accent2);
+  }
+
+  /* No results */
+  .no-results {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .no-results.active { display: block; }
+
+  .no-results-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .no-results p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .no-results .searched-term {
+    color: var(--error);
+    letter-spacing: 1px;
+  }
+
+  /* OCR hint */
+  .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .hint strong { color: var(--accent); }
+
+  /* Loading */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .loading.active { display: block; }
+
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 10px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  /* Tesseract progress */
+  #tesseract-status {
+    display: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 8px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">X2</div>
+  <div class="separator"></div>
+  <h1>Vyhledávač dílů</h1>
+</header>
+
+<main>
+  <!-- Search card -->
+  <div class="search-card">
+    <span class="search-label">Číslo dílu</span>
+    <div class="search-row">
+      <input
+        type="text"
+        id="searchInput"
+        class="search-input"
+        placeholder="Zadej nebo nasnímej číslo dílu..."
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      >
+      <button class="btn-camera" id="btnCamera" title="Snímat kamerou">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </button>
+      <button class="btn-search" id="btnSearch">HLEDAT</button>
+    </div>
+    <p class="hint">Zadej číslo dílu ručně nebo použij <strong>kameru</strong> pro automatické snímání textu ze štítku.</p>
+  </div>
+
+  <!-- Camera view -->
+  <div class="camera-container" id="cameraContainer">
+    <div class="camera-header">
+      <span>📷 Kamera — namiř na štítek</span>
+      <button class="btn-close-camera" id="btnCloseCamera">✕</button>
+    </div>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <div class="camera-controls">
+      <button class="btn-capture" id="btnCapture">Snímat text</button>
+      <span class="ocr-status" id="ocrStatus"></span>
+    </div>
+    <div id="tesseract-status">
+      <span id="tesseractMsg">Načítám OCR engine...</span>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Vyhledávám...</p>
+  </div>
+
+  <!-- Results -->
+  <div class="results-container" id="resultsContainer">
+    <div class="results-header">
+      <span class="results-label">Výsledky</span>
+      <span class="results-count" id="resultsCount">0 nalezeno</span>
+    </div>
+    <div id="resultsList"></div>
+  </div>
+
+  <!-- No results -->
+  <div class="no-results" id="noResults">
+    <div class="no-results-icon">⊘</div>
+    <p>Díl <span class="searched-term" id="searchedTerm"></span> nebyl nalezen v databázi.</p>
+  </div>
+</main>
+
+<footer>SESTAVY X2 — DATABÁZE DÍLŮ</footer>
+
+<!-- Tesseract.js CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.0.4/tesseract.min.js"></script>
+
+<script>
+// ============================================================
+// DATABÁZE DÍLŮ (z Excel souboru)
+// ============================================================
+const DB = [
+  {Cislodilu:"0P11925",Sestava:"355",Podsestava:"1",Pozice:"1",Mnozstvi:"1"},
+  {Cislodilu:"0P1352",Sestava:"355",Podsestava:"1",Pozice:"10",Mnozstvi:"1"},
+  {Cislodilu:"2513704001",Sestava:"355",Podsestava:"1",Pozice:"49",Mnozstvi:"1"},
+  {Cislodilu:"2519502008",Sestava:"355",Podsestava:"1",Pozice:"58",Mnozstvi:"2"},
+  {Cislodilu:"2519601010",Sestava:"355",Podsestava:"1",Pozice:"57",Mnozstvi:"2"},
+  {Cislodilu:"2519709012",Sestava:"355",Podsestava:"1",Pozice:"13",Mnozstvi:"1"},
+  {Cislodilu:"2520906001",Sestava:"355",Podsestava:"1",Pozice:"11",Mnozstvi:"2"},
+  {Cislodilu:"4001024072",Sestava:"355",Podsestava:"1",Pozice:"19",Mnozstvi:"1"},
+  {Cislodilu:"4001027021",Sestava:"355",Podsestava:"1",Pozice:"18",Mnozstvi:"1"},
+  {Cislodilu:"0P11929",Sestava:"355",Podsestava:"2",Pozice:"65",Mnozstvi:"1"},
+  {Cislodilu:"2508115004",Sestava:"355",Podsestava:"2",Pozice:"26",Mnozstvi:"1"},
+  {Cislodilu:"2519530004",Sestava:"355",Podsestava:"2",Pozice:"6",Mnozstvi:"1"},
+  {Cislodilu:"4001019022",Sestava:"355",Podsestava:"2",Pozice:"70",Mnozstvi:"1"},
+  {Cislodilu:"0P7843",Sestava:"355",Podsestava:"2",Pozice:"79",Mnozstvi:"1"},
+  {Cislodilu:"2513102061",Sestava:"355",Podsestava:"2",Pozice:"80",Mnozstvi:"1"},
+  {Cislodilu:"2520504003",Sestava:"355",Podsestava:"1",Pozice:"81",Mnozstvi:"4"},
+  {Cislodilu:"0P7801",Sestava:"355",Podsestava:"1",Pozice:"83",Mnozstvi:"1"},
+  {Cislodilu:"0P11349",Sestava:"355",Podsestava:"1",Pozice:"17",Mnozstvi:"2"},
+  {Cislodilu:"0P7849",Sestava:"355",Podsestava:"1",Pozice:"68",Mnozstvi:"1"},
+  {Cislodilu:"0X7672",Sestava:"355",Podsestava:"1",Pozice:"8",Mnozstvi:"2"},
+  {Cislodilu:"2508108007",Sestava:"355",Podsestava:"1",Pozice:"19",Mnozstvi:"1"},
+  {Cislodilu:"2508121003",Sestava:"355",Podsestava:"1",Pozice:"86",Mnozstvi:"3"},
+  {Cislodilu:"2509202027",Sestava:"355",Podsestava:"1",Pozice:"7",Mnozstvi:"2"},
+  {Cislodilu:"2513102067",Sestava:"355",Podsestava:"1",Pozice:"2",Mnozstvi:"3"},
+  {Cislodilu:"2513104035",Sestava:"355",Podsestava:"1",Pozice:"9",Mnozstvi:"2"},
+  {Cislodilu:"2519102229",Sestava:"355",Podsestava:"1",Pozice:"87",Mnozstvi:"1"},
+  {Cislodilu:"2519601006",Sestava:"355",Podsestava:"1",Pozice:"23",Mnozstvi:"9"},
+  {Cislodilu:"2520305013",Sestava:"355",Podsestava:"1",Pozice:"24",Mnozstvi:"9"},
+  {Cislodilu:"2520502004",Sestava:"355",Podsestava:"1",Pozice:"5",Mnozstvi:"9"},
+  {Cislodilu:"4001018006",Sestava:"355",Podsestava:"1",Pozice:"4",Mnozstvi:"1"},
+  {Cislodilu:"0P1472",Sestava:"355",Podsestava:"1",Pozice:"69",Mnozstvi:"1"},
+  {Cislodilu:"2520306007",Sestava:"355",Podsestava:"1",Pozice:"28",Mnozstvi:"2"},
+  {Cislodilu:"4001019001",Sestava:"355",Podsestava:"1",Pozice:"16",Mnozstvi:"2"},
+  {Cislodilu:"4001027056",Sestava:"355",Podsestava:"1",Pozice:"12",Mnozstvi:"2"},
+  {Cislodilu:"0P1367",Sestava:"355",Podsestava:"1",Pozice:"84",Mnozstvi:"1"},
+  {Cislodilu:"0P7796",Sestava:"355",Podsestava:"1",Pozice:"34",Mnozstvi:"2"},
+  {Cislodilu:"0P8174",Sestava:"355",Podsestava:"1",Pozice:"6",Mnozstvi:"2"},
+  {Cislodilu:"2520306007",Sestava:"355",Podsestava:"1",Pozice:"40",Mnozstvi:"4"},
+  {Cislodilu:"4001019001",Sestava:"355",Podsestava:"1",Pozice:"82",Mnozstvi:"2"},
+  {Cislodilu:"4001019031",Sestava:"355",Podsestava:"1",Pozice:"15",Mnozstvi:"2"},
+  {Cislodilu:"4001027056",Sestava:"355",Podsestava:"1",Pozice:"27",Mnozstvi:"4"},
+  {Cislodilu:"0MH1270",Sestava:"355",Podsestava:"1",Pozice:"60",Mnozstvi:"8"},
+  {Cislodilu:"0P7802",Sestava:"355",Podsestava:"1",Pozice:"37",Mnozstvi:"2"},
+  {Cislodilu:"2508115004",Sestava:"355",Podsestava:"1",Pozice:"38",Mnozstvi:"2"},
+  {Cislodilu:"2520704011",Sestava:"355",Podsestava:"1",Pozice:"61",Mnozstvi:"8"},
+  {Cislodilu:"0P1368",Sestava:"355",Podsestava:"1",Pozice:"39",Mnozstvi:"2"},
+  {Cislodilu:"2519502008",Sestava:"355",Podsestava:"1",Pozice:"46",Mnozstvi:"2"},
+  {Cislodilu:"2519601010",Sestava:"355",Podsestava:"1",Pozice:"14",Mnozstvi:"2"},
+  {Cislodilu:"0P1410",Sestava:"355",Podsestava:"1",Pozice:"41",Mnozstvi:"1"},
+  {Cislodilu:"0P3272",Sestava:"355",Podsestava:"1",Pozice:"47",Mnozstvi:"1"},
+  {Cislodilu:"2520504007",Sestava:"355",Podsestava:"1",Pozice:"48",Mnozstvi:"1"},
+  {Cislodilu:"0P11857",Sestava:"355",Podsestava:"3",Pozice:"46",Mnozstvi:"2"},
+  {Cislodilu:"0P1400",Sestava:"355",Podsestava:"3",Pozice:"49",Mnozstvi:"2"},
+  {Cislodilu:"2508111001",Sestava:"355",Podsestava:"3",Pozice:"48",Mnozstvi:"4"},
+  {Cislodilu:"2519104027",Sestava:"355",Podsestava:"3",Pozice:"47",Mnozstvi:"4"},
+  {Cislodilu:"0P5012",Sestava:"355",Podsestava:"3",Pozice:"42",Mnozstvi:"1"},
+  {Cislodilu:"2519601008",Sestava:"355",Podsestava:"3",Pozice:"53",Mnozstvi:"2"},
+  {Cislodilu:"2519601010",Sestava:"355",Podsestava:"3",Pozice:"50",Mnozstvi:"2"},
+  {Cislodilu:"2520505006",Sestava:"355",Podsestava:"3",Pozice:"52",Mnozstvi:"2"},
+  {Cislodilu:"2520506014",Sestava:"355",Podsestava:"3",Pozice:"51",Mnozstvi:"2"},
+  {Cislodilu:"3049399050",Sestava:"355",Podsestava:"3",Pozice:"45",Mnozstvi:"1"},
+  {Cislodilu:"4001024042",Sestava:"355",Podsestava:"3",Pozice:"44",Mnozstvi:"1"},
+  {Cislodilu:"4001027059",Sestava:"355",Podsestava:"3",Pozice:"43",Mnozstvi:"1"},
+  {Cislodilu:"2520504008",Sestava:"355",Podsestava:"2",Pozice:"14",Mnozstvi:"4"},
+  {Cislodilu:"2520505006",Sestava:"355",Podsestava:"2",Pozice:"22",Mnozstvi:"2"},
+];
+
+// ============================================================
+// VYHLEDÁVÁNÍ
+// ============================================================
+function search(query) {
+  const q = query.trim().toUpperCase().replace(/\s/g, '');
+  if (!q) return [];
+  return DB.filter(d => d.Cislodilu.toUpperCase().includes(q));
+}
+
+function showResults(results, query) {
+  const container = document.getElementById('resultsContainer');
+  const list = document.getElementById('resultsList');
+  const count = document.getElementById('resultsCount');
+  const noResults = document.getElementById('noResults');
+  const loading = document.getElementById('loading');
+
+  loading.classList.remove('active');
+
+  if (results.length === 0) {
+    container.classList.remove('active');
+    noResults.classList.add('active');
+    document.getElementById('searchedTerm').textContent = `"${query}"`;
+    return;
+  }
+
+  noResults.classList.remove('active');
+  container.classList.add('active');
+  count.textContent = `${results.length} nalezeno`;
+
+  list.innerHTML = results.map(r => `
+    <div class="result-card">
+      <div class="result-part-number">${r.Cislodilu}</div>
+      <div class="result-grid">
+        <div class="result-field">
+          <div class="result-field-label">Sestava</div>
+          <div class="result-field-value">${r.Sestava}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Podsestava</div>
+          <div class="result-field-value">${r.Podsestava}</div>
+        </div>
+        <div class="result-field highlight">
+          <div class="result-field-label">Pozice</div>
+          <div class="result-field-value">${r.Pozice}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Množství</div>
+          <div class="result-field-value">${r.Mnozstvi} ks</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Search button & Enter key
+document.getElementById('btnSearch').addEventListener('click', () => {
+  const q = document.getElementById('searchInput').value;
+  if (!q.trim()) return;
+  document.getElementById('loading').classList.add('active');
+  document.getElementById('resultsContainer').classList.remove('active');
+  document.getElementById('noResults').classList.remove('active');
+  setTimeout(() => showResults(search(q), q), 200);
+});
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnSearch').click();
+});
+
+// ============================================================
+// KAMERA + OCR (Tesseract.js)
+// ============================================================
+let stream = null;
+let tesseractWorker = null;
+let workerReady = false;
+
+const btnCamera = document.getElementById('btnCamera');
+const cameraContainer = document.getElementById('cameraContainer');
+const btnCloseCamera = document.getElementById('btnCloseCamera');
+const btnCapture = document.getElementById('btnCapture');
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ocrStatus = document.getElementById('ocrStatus');
+const tesseractStatus = document.getElementById('tesseract-status');
+const tesseractMsg = document.getElementById('tesseractMsg');
+const progressFill = document.getElementById('progressFill');
+
+async function initTesseract() {
+  if (tesseractWorker) return;
+  tesseractStatus.style.display = 'block';
+  tesseractMsg.textContent = 'Načítám OCR engine...';
+  progressFill.style.width = '10%';
+
+  tesseractWorker = await Tesseract.createWorker('eng', 1, {
+    langPath: './',         // načti eng.traineddata.gz z téže složky
+    cacheMethod: 'none',
+    logger: m => {
+      if (m.status === 'loading tesseract core') {
+        tesseractMsg.textContent = 'Načítám jádro OCR...';
+        progressFill.style.width = '30%';
+      } else if (m.status === 'loading language traineddata') {
+        tesseractMsg.textContent = 'Načítám jazykový model...';
+        progressFill.style.width = '60%';
+      } else if (m.status === 'initialized api') {
+        tesseractMsg.textContent = 'OCR připraveno ✓';
+        progressFill.style.width = '100%';
+        workerReady = true;
+        setTimeout(() => { tesseractStatus.style.display = 'none'; }, 1500);
+      }
+    }
+  });
+
+  // Optimize for alphanumeric part numbers
+  await tesseractWorker.setParameters({
+    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-',
+  });
+}
+
+btnCamera.addEventListener('click', async () => {
+  cameraContainer.classList.add('active');
+  btnCapture.disabled = true;
+  ocrStatus.textContent = '';
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = stream;
+    await video.play();
+    btnCapture.disabled = false;
+  } catch (err) {
+    ocrStatus.textContent = 'Kamera nedostupná';
+    console.error(err);
+  }
+
+  // Init tesseract in background
+  initTesseract();
+});
+
+btnCloseCamera.addEventListener('click', stopCamera);
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  cameraContainer.classList.remove('active');
+}
+
+btnCapture.addEventListener('click', async () => {
+  if (!workerReady) {
+    ocrStatus.textContent = 'Čekám na OCR...';
+    return;
+  }
+
+  btnCapture.disabled = true;
+  ocrStatus.textContent = 'Zpracovávám...';
+
+  // Capture frame from video
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+
+  try {
+    const { data: { text } } = await tesseractWorker.recognize(canvas);
+    const cleaned = text.replace(/\s+/g, ' ').trim().toUpperCase();
+
+    // Try to find a matching part number in OCR text
+    let found = null;
+    for (const part of DB) {
+      if (cleaned.includes(part.Cislodilu.toUpperCase())) {
+        found = part.Cislodilu;
+        break;
+      }
+    }
+
+    if (found) {
+      document.getElementById('searchInput').value = found;
+      ocrStatus.textContent = '✓ Nalezeno';
+      stopCamera();
+      document.getElementById('btnSearch').click();
+    } else {
+      // Use raw OCR text as fallback
+      const words = cleaned.split(/\s+/);
+      const bestWord = words.find(w => w.length >= 4) || cleaned.split(' ')[0];
+      document.getElementById('searchInput').value = bestWord;
+      ocrStatus.textContent = `OCR: ${bestWord}`;
+    }
+  } catch (err) {
+    ocrStatus.textContent = 'Chyba OCR';
+    console.error(err);
+  }
+
+  btnCapture.disabled = false;
+});
+</script>
+</body>
+</html>
