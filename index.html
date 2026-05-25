@@ -65,6 +65,21 @@
     text-transform: uppercase;
   }
 
+  header .btn-checklist {
+    margin-left: auto;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 6px 12px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  header .btn-checklist:hover { background: rgba(0,229,255,0.1); }
+
   header h1 {
     font-size: 16px;
     font-weight: 600;
@@ -508,6 +523,7 @@
   <div class="logo">X2</div>
   <div class="separator"></div>
   <h1>Vyhledávač dílů</h1>
+  <a href="checklist.html" class="btn-checklist">&#9745; Kontrola sestavy</a>
 </header>
 
 <main>
@@ -1956,36 +1972,76 @@ btnCapture.addEventListener('click', async () => {
     });
 
     const data = await response.json();
-    const annotations = data.responses?.[0]?.textAnnotations || [];
-    let found = null;
+    const rawText = data.responses?.[0]?.fullTextAnnotation?.text || '';
 
-    if (annotations.length > 1) {
-      // Najdi QTY a vezmi text těsně nad ním — to je číslo dílu
-      const qtyAnn = annotations.find(a => a.description.toUpperCase() === 'QTY');
-      if (qtyAnn) {
-        const qtyTop = Math.min(...qtyAnn.boundingPoly.vertices.map(v => v.y || 0));
-        const qtyRight = Math.max(...qtyAnn.boundingPoly.vertices.map(v => v.x || 0));
-        let bestY = -1, bestCand = null;
-        for (const ann of annotations.slice(1)) {
-          const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
-          const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
-          const desc = ann.description.replace(/\s+/g, '').toUpperCase()
-            .replace(/^O(?=[A-Z0-9])/, '0'); // O → 0 na začátku (OP4150 → 0P4150)
-          if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 4 && annLeft < qtyRight) {
-            if (annBottom > bestY) { bestY = annBottom; bestCand = desc; }
-          }
-        }
-        if (bestCand) found = bestCand;
+    // Normalize OCR text: uppercase, fix common OCR errors
+    // Part numbers always start with a digit, never contain spaces
+    function normalizeOCR(str) {
+      return str.toUpperCase()
+        .replace(/\bO(?=\w*\d)/g, '0')      // O na začátku slova před číslicí → 0 (např. OP4150 → 0P4150)
+        .replace(/I(?=\d)|(?<=\d)I/g, '1')  // letter I near digits → 1
+        .replace(/S(?=\d)|(?<=\d)S/g, '5')  // letter S near digits → 5
+        .replace(/\s+/g, ' ').trim();
+    }
+
+    // Also normalize a DB part number the same way for fuzzy compare
+    function normalizePart(str) {
+      return str.toUpperCase().replace(/\s+/g, '');
+    }
+
+    // Levenshtein distance for fuzzy matching
+    function levenshtein(a, b) {
+      const m = a.length, n = b.length;
+      const dp = Array.from({length: m+1}, (_, i) => [i, ...Array(n).fill(0)]);
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+          dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+      return dp[m][n];
+    }
+
+    const cleaned = normalizeOCR(rawText);
+
+    // Step 1: exact match — find longest DB entry that appears in OCR text
+    // Longest match prevents short part numbers from matching before longer ones
+    const cleanedNoSpace = cleaned.replace(/\s+/g, '');
+    let found = null;
+    let foundLen = 0;
+    for (const part of DB) {
+      const p = normalizePart(part.Cislodilu);
+      if ((cleanedNoSpace.includes(p) || cleaned.includes(p)) && p.length > foundLen) {
+        found = part.Cislodilu;
+        foundLen = p.length;
       }
     }
 
-    // Fallback — prohledej celý text štítku
+    // Step 2: fuzzy match — split OCR into tokens, find closest DB entry
     if (!found) {
-      const rawText = (annotations[0]?.description || '')
-        .toUpperCase().replace(/^O(?=[A-Z0-9])/gm, '0');
-      for (const part of DB) {
-        if (rawText.includes(part.Cislodilu.toUpperCase())) { found = part.Cislodilu; break; }
+      const allTokens = cleaned.split(/\s+/);
+      // Also try merging adjacent tokens (e.g. "0P" + "4150" → "0P4150")
+      const merged = [];
+      for (let i = 0; i < allTokens.length - 1; i++) {
+        merged.push(allTokens[i] + allTokens[i+1]);
       }
+      const tokens = [...allTokens, ...merged].filter(w => w.length >= 3 && /^\d/.test(w));
+      const candidates = [...new Set(tokens)];
+
+      let bestMatch = null;
+      let bestDist = Infinity;
+      for (const cand of candidates) {
+        for (const part of DB) {
+          const p = normalizePart(part.Cislodilu);
+          // Only compare if lengths are similar (within 3 chars)
+          if (Math.abs(cand.length - p.length) > 3) continue;
+          const dist = levenshtein(cand, p);
+          // Accept if distance is at most 2 (1-2 char OCR errors)
+          if (dist < bestDist && dist <= 2) {
+            bestDist = dist;
+            bestMatch = part.Cislodilu;
+          }
+        }
+      }
+      if (bestMatch) found = bestMatch;
     }
 
     if (found) {
@@ -1994,8 +2050,16 @@ btnCapture.addEventListener('click', async () => {
       stopCamera();
       document.getElementById('btnSearch').click();
     } else {
-      ocrStatus.textContent = 'Nenalezeno — zadej ručně';
-      btnCapture.disabled = false;
+      // Last resort: put best-looking token into search field
+      const allW = cleaned.split(/\s+/);
+      const mergedW = [];
+      for (let i = 0; i < allW.length - 1; i++) mergedW.push(allW[i] + allW[i+1]);
+      const words = [...allW, ...mergedW].filter(w => w.length >= 3 && /^\d/.test(w));
+      const bestWord = (words[0] || '').replace(/\s+/g, '');
+      document.getElementById('searchInput').value = bestWord;
+      ocrStatus.textContent = `OCR: ${bestWord}`;
+      stopCamera();
+      document.getElementById('btnSearch').click();
     }
   } catch (err) {
     ocrStatus.textContent = 'Chyba připojení';
