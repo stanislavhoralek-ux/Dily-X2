@@ -1956,70 +1956,75 @@ btnCapture.addEventListener('click', async () => {
     });
 
     const data = await response.json();
+    const rawText = data.responses?.[0]?.fullTextAnnotation?.text || '';
 
-    // Vision API vrací textAnnotations s pozicemi každého slova
-    // Najdeme slovo "QTY" a vezmeme slovo které je NAD ním — to je číslo dílu
-    const annotations = data.responses?.[0]?.textAnnotations || [];
+    // Normalize OCR text: uppercase, fix common OCR errors
+    // Part numbers always start with a digit, never contain spaces
+    function normalizeOCR(str) {
+      return str.toUpperCase()
+        .replace(/I(?=\d)|(?<=\d)I/g, '1')  // letter I near digits → 1
+        .replace(/S(?=\d)|(?<=\d)S/g, '5')  // letter S near digits → 5
+        .replace(/\s+/g, ' ').trim();
+    }
 
+    // Also normalize a DB part number the same way for fuzzy compare
+    function normalizePart(str) {
+      return str.toUpperCase().replace(/\s+/g, '');
+    }
+
+    // Levenshtein distance for fuzzy matching
+    function levenshtein(a, b) {
+      const m = a.length, n = b.length;
+      const dp = Array.from({length: m+1}, (_, i) => [i, ...Array(n).fill(0)]);
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+          dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+      return dp[m][n];
+    }
+
+    const cleaned = normalizeOCR(rawText);
+
+    // Step 1: exact match — find longest DB entry that appears in OCR text
+    // Longest match prevents short part numbers from matching before longer ones
+    const cleanedNoSpace = cleaned.replace(/\s+/g, '');
     let found = null;
-
-    if (annotations.length > 1) {
-      // Najdi pozici slova QTY
-      let qtyAnnotation = null;
-      for (const ann of annotations) {
-        if (ann.description.toUpperCase() === 'QTY') {
-          qtyAnnotation = ann;
-          break;
-        }
-      }
-
-      if (qtyAnnotation) {
-        // Y souřadnice horního okraje QTY
-        const qtyTop = Math.min(...qtyAnnotation.boundingPoly.vertices.map(v => v.y || 0));
-        const qtyLeft = Math.min(...qtyAnnotation.boundingPoly.vertices.map(v => v.x || 0));
-        const qtyRight = Math.max(...qtyAnnotation.boundingPoly.vertices.map(v => v.x || 0));
-
-        // Hledej slova která jsou NAD QTY (menší Y) a ve stejném horizontálním pásmu (vlevo)
-        let bestCandidate = null;
-        let bestY = -1;
-        for (const ann of annotations.slice(1)) {
-          const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
-          const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
-          const desc = ann.description.toUpperCase().replace(/\s+/g, '');
-
-          // Musí být nad QTY, začínat číslicí, mít alespoň 4 znaky
-          if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 4 && annLeft < qtyRight) {
-            // Vezmi nejblíže nad QTY (největší Y které je stále menší než qtyTop)
-            if (annBottom > bestY) {
-              bestY = annBottom;
-              bestCandidate = ann.description.replace(/\s+/g, '').toUpperCase();
-            }
-          }
-        }
-
-        if (bestCandidate) {
-          // Zkus přesnou shodu v DB
-          for (const part of DB) {
-            if (part.Cislodilu.toUpperCase() === bestCandidate) {
-              found = part.Cislodilu;
-              break;
-            }
-          }
-          // Pokud není přesná shoda, vlož do pole a hledej
-          if (!found) bestCandidate && (found = bestCandidate);
-        }
+    let foundLen = 0;
+    for (const part of DB) {
+      const p = normalizePart(part.Cislodilu);
+      if ((cleanedNoSpace.includes(p) || cleaned.includes(p)) && p.length > foundLen) {
+        found = part.Cislodilu;
+        foundLen = p.length;
       }
     }
 
-    // Fallback: pokud QTY nenalezeno, vezmi celý text a hledej v DB
+    // Step 2: fuzzy match — split OCR into tokens, find closest DB entry
     if (!found) {
-      const rawText = (annotations[0]?.description || '').toUpperCase().replace(/\s+/g, ' ');
-      for (const part of DB) {
-        if (rawText.includes(part.Cislodilu.toUpperCase())) {
-          found = part.Cislodilu;
-          break;
+      const allTokens = cleaned.split(/\s+/);
+      // Also try merging adjacent tokens (e.g. "0P" + "4150" → "0P4150")
+      const merged = [];
+      for (let i = 0; i < allTokens.length - 1; i++) {
+        merged.push(allTokens[i] + allTokens[i+1]);
+      }
+      const tokens = [...allTokens, ...merged].filter(w => w.length >= 3 && /^\d/.test(w));
+      const candidates = [...new Set(tokens)];
+
+      let bestMatch = null;
+      let bestDist = Infinity;
+      for (const cand of candidates) {
+        for (const part of DB) {
+          const p = normalizePart(part.Cislodilu);
+          // Only compare if lengths are similar (within 3 chars)
+          if (Math.abs(cand.length - p.length) > 3) continue;
+          const dist = levenshtein(cand, p);
+          // Accept if distance is at most 2 (1-2 char OCR errors)
+          if (dist < bestDist && dist <= 2) {
+            bestDist = dist;
+            bestMatch = part.Cislodilu;
+          }
         }
       }
+      if (bestMatch) found = bestMatch;
     }
 
     if (found) {
@@ -2028,7 +2033,9 @@ btnCapture.addEventListener('click', async () => {
       stopCamera();
       document.getElementById('btnSearch').click();
     } else {
-      ocrStatus.textContent = 'Číslo dílu nenalezeno — zadej ručně';
+      // DEBUG: ukaž co Vision přečetl
+      const rawDebug = data.responses?.[0]?.fullTextAnnotation?.text || '(nic)';
+      ocrStatus.textContent = `OCR přečetl: ${rawDebug.replace(/\n/g,' ').substring(0, 80)}`;
       btnCapture.disabled = false;
     }
   } catch (err) {
