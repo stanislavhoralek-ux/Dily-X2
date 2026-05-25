@@ -1522,17 +1522,8 @@ btnCapture.addEventListener('click', async () => {
     const annotations = data.responses?.[0]?.textAnnotations || [];
     let found = null;
 
-    // Pomocná funkce pro opravu OCR chyb v čísle dílu
-    function fixOCR(str) {
-      return str.replace(/\s+/g, '').toUpperCase()
-        .replace(/^O/, '0')           // O → 0 na začátku (OP4150 → 0P4150)
-        .replace(/^Q/, '0')           // Q → 0 na začátku (QP4150 → 0P4150)
-        .replace(/(?<=\d)O(?=\d)/g, '0')  // O mezi číslicemi → 0
-        .replace(/(?<=\d)I(?=\d)/g, '1'); // I mezi číslicemi → 1
-    }
-
     if (annotations.length > 1) {
-      let qtyAnn = annotations.find(a => a.description.toUpperCase() === 'QTY');
+      const qtyAnn = annotations.find(a => a.description.toUpperCase() === 'QTY');
       if (qtyAnn) {
         const qtyTop = Math.min(...qtyAnn.boundingPoly.vertices.map(v => v.y || 0));
         const qtyRight = Math.max(...qtyAnn.boundingPoly.vertices.map(v => v.x || 0));
@@ -1540,7 +1531,8 @@ btnCapture.addEventListener('click', async () => {
         for (const ann of annotations.slice(1)) {
           const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
           const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
-          const desc = fixOCR(ann.description);
+          const desc = ann.description.replace(/\s+/g, '').toUpperCase()
+            .replace(/^O(?=[A-Z0-9])/, '0');
           if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 4 && annLeft < qtyRight) {
             if (annBottom > bestY) { bestY = annBottom; bestCand = desc; }
           }
@@ -1548,12 +1540,12 @@ btnCapture.addEventListener('click', async () => {
         if (bestCand) found = bestCand;
       }
     }
-    // Fallback — celý text s opravou O→0
+    // Fallback
     if (!found) {
-      const rawText = fixOCR(annotations[0]?.description || '');
+      const rawText = (annotations[0]?.description || '').toUpperCase().replace(/^O(?=[A-Z0-9])/gm, '0');
       const unique = getUniqueParts(currentAssembly);
       for (const c of Object.keys(unique)) {
-        if (rawText.includes(c) || rawText.includes(fixOCR(c))) { found = c; break; }
+        if (rawText.includes(c)) { found = c; break; }
       }
     }
 
