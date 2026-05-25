@@ -1874,15 +1874,66 @@ btnCapture.addEventListener('click', async () => {
 
     const data = await response.json();
     const rawText = data.responses?.[0]?.fullTextAnnotation?.text || '';
-    const cleaned = rawText.replace(/\s+/g, ' ').trim().toUpperCase();
 
-    // Try to find exact match in DB
+    // Normalize OCR text: uppercase, fix common OCR errors
+    // Part numbers always start with a digit, never contain spaces
+    function normalizeOCR(str) {
+      return str.toUpperCase()
+        .replace(/I(?=\d)|(?<=\d)I/g, '1')  // letter I near digits → 1
+        .replace(/S(?=\d)|(?<=\d)S/g, '5')  // letter S near digits → 5
+        .replace(/\s+/g, ' ').trim();
+    }
+
+    // Also normalize a DB part number the same way for fuzzy compare
+    function normalizePart(str) {
+      return str.toUpperCase().replace(/\s+/g, '');
+    }
+
+    // Levenshtein distance for fuzzy matching
+    function levenshtein(a, b) {
+      const m = a.length, n = b.length;
+      const dp = Array.from({length: m+1}, (_, i) => [i, ...Array(n).fill(0)]);
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++)
+        for (let j = 1; j <= n; j++)
+          dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+      return dp[m][n];
+    }
+
+    const cleaned = normalizeOCR(rawText);
+
+    // Step 1: exact match (part number appears literally in OCR text, ignoring spaces)
+    const cleanedNoSpace = cleaned.replace(/\s+/g, '');
     let found = null;
     for (const part of DB) {
-      if (cleaned.includes(part.Cislodilu.toUpperCase())) {
+      const p = normalizePart(part.Cislodilu);
+      if (cleanedNoSpace.includes(p) || cleaned.includes(p)) {
         found = part.Cislodilu;
         break;
       }
+    }
+
+    // Step 2: fuzzy match — split OCR into tokens, find closest DB entry
+    if (!found) {
+      const tokens = cleaned.split(/\s+/).filter(w => w.length >= 4 && /^\d/.test(w));
+      const candidates = [...tokens];
+
+      let bestMatch = null;
+      let bestDist = Infinity;
+      for (const cand of candidates) {
+        for (const part of DB) {
+          const p = normalizePart(part.Cislodilu);
+          // Only compare if lengths are similar (within 3 chars)
+          if (Math.abs(cand.length - p.length) > 3) continue;
+          const dist = levenshtein(cand, p);
+          // Accept if distance is at most 2 (1-2 char OCR errors)
+          if (dist < bestDist && dist <= 2) {
+            bestDist = dist;
+            bestMatch = part.Cislodilu;
+          }
+        }
+      }
+      if (bestMatch) found = bestMatch;
     }
 
     if (found) {
@@ -1891,29 +1942,9 @@ btnCapture.addEventListener('click', async () => {
       stopCamera();
       document.getElementById('btnSearch').click();
     } else {
-      // Fallback: find word that best matches part number format (letters + digits)
-      const words = cleaned.split(/\s+/).filter(w => w.length >= 4);
-      // Prefer words that look like part numbers: contain both letters and digits
-      const partLike = words.filter(w => /[A-Z]/.test(w) && /[0-9]/.test(w));
-      // Score each candidate by longest partial match against DB
-      let bestWord = '';
-      let bestScore = 0;
-      const candidates = partLike.length > 0 ? partLike : words;
-      for (const w of candidates) {
-        for (const part of DB) {
-          const p = part.Cislodilu.toUpperCase();
-          // Check how many chars match from beginning
-          let score = 0;
-          for (let i = 0; i < Math.min(w.length, p.length); i++) {
-            if (w[i] === p[i]) score++;
-            else break;
-          }
-          // Also check if DB part contains this word or vice versa
-          if (p.includes(w) || w.includes(p)) score += 10;
-          if (score > bestScore) { bestScore = score; bestWord = w; }
-        }
-      }
-      if (!bestWord) bestWord = words[0] || cleaned.split(' ')[0];
+      // Last resort: put best-looking token into search field
+      const words = cleaned.split(/\s+/).filter(w => w.length >= 4 && /^\d/.test(w));
+      const bestWord = (words[0] || '').replace(/\s+/g, '');
       document.getElementById('searchInput').value = bestWord;
       ocrStatus.textContent = `OCR: ${bestWord}`;
       stopCamera();
