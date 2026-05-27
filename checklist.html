@@ -93,6 +93,7 @@
   <div class="separator"></div>
   <h1>Kontrola sestavy</h1>
   <a href="index.html" class="btn-back">← Zpět</a>
+  <a href="admin.html" class="btn-back" style="margin-left:8px">&#9881; Admin</a>
 </header>
 
 <main>
@@ -1669,6 +1670,20 @@ const DB = [
   {Cislodilu:"3X3977",Sestava:"23X260",Podsestava:"1",Pozice:"1",Mnozstvi:"32"},
   {Cislodilu:"2519520004",Sestava:"23X260",Podsestava:"1",Pozice:"2",Mnozstvi:"64"}
 ];
+
+// Načti DB z localStorage pokud existuje (nahrána přes admin.html)
+(function() {
+  try {
+    var raw = localStorage.getItem('x2_db');
+    if (raw) {
+      var localDB = JSON.parse(raw);
+      if (localDB && localDB.length > 0) {
+        DB.length = 0;
+        localDB.forEach(function(d) { DB.push(d); });
+      }
+    }
+  } catch(e) {}
+})();
 
 const VISION_API_KEY = 'AIzaSyD2X8U8cdc_GoKc_VqzlcxCFo209kBNGT0';
 const VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`;

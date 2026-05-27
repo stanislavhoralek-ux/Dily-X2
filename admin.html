@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Správa databáze X2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #222536;
+    --accent: #00e5ff; --accent2: #ff6b35; --text: #e8eaf0;
+    --text-muted: #7b8096; --border: #2e3148;
+    --success: #00c896; --error: #ff4757; --warn: #ffb020;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.3; pointer-events: none; z-index: 0; }
+  header { position: relative; z-index: 1; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 12px; }
+  .logo { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 3px; color: var(--accent); }
+  header h1 { font-size: 16px; font-weight: 600; color: var(--text); }
+  .separator { width: 1px; height: 24px; background: var(--border); }
+  .btn-back { margin-left: auto; font-size: 12px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; text-decoration: none; }
+  .btn-back:hover { background: rgba(255,255,255,0.05); }
+  main { position: relative; z-index: 1; flex: 1; padding: 24px 16px; max-width: 640px; margin: 0 auto; width: 100%; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; display: block; margin-bottom: 10px; }
+  .drop-zone { border: 2px dashed var(--border); border-radius: 10px; padding: 40px 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(0,229,255,0.05); }
+  .drop-zone .icon { font-size: 36px; margin-bottom: 12px; }
+  .drop-zone p { color: var(--text-muted); font-size: 14px; }
+  .drop-zone p span { color: var(--accent); font-weight: 600; }
+  #fileInput { display: none; }
+  .btn-primary { background: var(--accent); color: #0f1117; border: none; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; padding: 11px 20px; cursor: pointer; width: 100%; margin-top: 12px; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 1px; padding: 11px 20px; cursor: pointer; width: 100%; margin-top: 8px; }
+  .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .status { font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 10px 14px; border-radius: 8px; margin-top: 12px; display: none; }
+  .status.ok { background: rgba(0,200,150,0.1); border: 1px solid var(--success); color: var(--success); display: block; }
+  .status.err { background: rgba(255,71,87,0.1); border: 1px solid var(--error); color: var(--error); display: block; }
+  .status.info { background: rgba(0,229,255,0.1); border: 1px solid var(--accent); color: var(--accent); display: block; }
+  .preview { display: none; }
+  .preview.active { display: block; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .stat-box { background: var(--surface2); border-radius: 8px; padding: 12px; }
+  .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+  .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--accent); }
+  .assembly-list { background: var(--surface2); border-radius: 8px; padding: 12px; }
+  .assembly-tag { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; margin: 3px; color: var(--text-muted); }
+  .current-info { background: var(--surface2); border-radius: 8px; padding: 12px; margin-bottom: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--text-muted); }
+  .current-info span { color: var(--text); font-weight: 600; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .export-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">X2</div>
+  <div class="separator"></div>
+  <h1>Správa databáze</h1>
+  <a href="index.html" class="btn-back">← Zpět</a>
+</header>
+
+<main>
+
+  <!-- Aktuální stav DB -->
+  <div class="card">
+    <span class="label">Aktuální databáze</span>
+    <div class="current-info" id="currentInfo">Načítám...</div>
+  </div>
+
+  <!-- Nahrání Excel -->
+  <div class="card">
+    <span class="label">Nahrát nový Excel</span>
+    <div class="drop-zone" id="dropZone">
+      <div class="icon">📊</div>
+      <p>Přetáhni Excel soubor sem<br>nebo <span>klikni pro výběr</span></p>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" />
+    <div class="status" id="parseStatus"></div>
+
+    <!-- Náhled po načtení -->
+    <div class="preview" id="preview">
+      <hr class="divider">
+      <span class="label">Náhled nové databáze</span>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-label">Celkem dílů</div>
+          <div class="stat-value" id="previewCount">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Sestav</div>
+          <div class="stat-value" id="previewAssemblies">0</div>
+        </div>
+      </div>
+      <div class="assembly-list" id="previewAssemblyList"></div>
+
+      <hr class="divider">
+      <span class="label">Uložit databázi</span>
+
+      <!-- Lokální uložení -->
+      <button class="btn-primary" id="btnSaveLocal" disabled>💾 ULOŽIT DO PROHLÍŽEČE</button>
+      <div class="status" id="saveStatus"></div>
+
+      <!-- Export HTML -->
+      <hr class="divider">
+      <span class="label">Export pro GitHub</span>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:4px;">Stáhni aktualizované soubory a nahraj je na GitHub.</p>
+      <div class="export-grid">
+        <button class="btn-secondary" id="btnExportIndex" disabled>⬇ index.html</button>
+        <button class="btn-secondary" id="btnExportChecklist" disabled>⬇ checklist.html</button>
+      </div>
+      <div class="status" id="exportStatus"></div>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+
+// ── Aktuální stav DB ──────────────────────────────────────────────────────────
+function loadCurrentInfo() {
+  try {
+    const raw = localStorage.getItem('x2_db');
+    if (raw) {
+      const db = JSON.parse(raw);
+      const assemblies = [...new Set(db.map(d => d.Sestava))].sort();
+      document.getElementById('currentInfo').innerHTML =
+        'Dílů: <span>' + db.length + '</span> &nbsp;|&nbsp; ' +
+        'Sestav: <span>' + assemblies.length + '</span> &nbsp;|&nbsp; ' +
+        'Uloženo: <span>' + (localStorage.getItem('x2_db_date') || 'neznámo') + '</span>';
+    } else {
+      document.getElementById('currentInfo').innerHTML = 'Žádná lokální databáze — používá se výchozí z HTML souborů.';
+    }
+  } catch(e) {
+    document.getElementById('currentInfo').innerHTML = 'Chyba při čtení databáze.';
+  }
+}
+loadCurrentInfo();
+
+// ── Drag & Drop ───────────────────────────────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) processFile(fileInput.files[0]);
+});
+
+// ── Zpracování Excel ──────────────────────────────────────────────────────────
+let parsedDB = null;
+
+function processFile(file) {
+  const status = document.getElementById('parseStatus');
+  status.className = 'status info';
+  status.textContent = 'Načítám ' + file.name + '...';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+      const entries = [];
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r[0]) continue;
+        entries.push({
+          Cislodilu: String(r[0]).trim(),
+          Sestava:   String(r[1] || '').trim(),
+          Podsestava: String(r[2] || '').trim(),
+          Pozice:    String(r[3] || '').trim(),
+          Mnozstvi:  String(r[4] || '').trim()
+        });
+      }
+
+      if (entries.length === 0) {
+        status.className = 'status err';
+        status.textContent = 'Soubor neobsahuje žádná data.';
+        return;
+      }
+
+      parsedDB = entries;
+      status.className = 'status ok';
+      status.textContent = '✓ Soubor načten: ' + entries.length + ' dílů';
+
+      // Náhled
+      const assemblies = [...new Set(entries.map(d => d.Sestava))].sort();
+      document.getElementById('previewCount').textContent = entries.length;
+      document.getElementById('previewAssemblies').textContent = assemblies.length;
+      document.getElementById('previewAssemblyList').innerHTML =
+        assemblies.map(a => '<span class="assembly-tag">' + a + '</span>').join('');
+      document.getElementById('preview').classList.add('active');
+      document.getElementById('btnSaveLocal').disabled = false;
+      document.getElementById('btnExportIndex').disabled = false;
+      document.getElementById('btnExportChecklist').disabled = false;
+
+    } catch(err) {
+      status.className = 'status err';
+      status.textContent = 'Chyba při čtení souboru: ' + err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Uložit lokálně ────────────────────────────────────────────────────────────
+document.getElementById('btnSaveLocal').addEventListener('click', () => {
+  if (!parsedDB) return;
+  try {
+    localStorage.setItem('x2_db', JSON.stringify(parsedDB));
+    const now = new Date().toLocaleString('cs-CZ');
+    localStorage.setItem('x2_db_date', now);
+    const s = document.getElementById('saveStatus');
+    s.className = 'status ok';
+    s.textContent = '✓ Databáze uložena (' + parsedDB.length + ' dílů) — ' + now;
+    loadCurrentInfo();
+  } catch(e) {
+    const s = document.getElementById('saveStatus');
+    s.className = 'status err';
+    s.textContent = 'Chyba při ukládání: ' + e.message;
+  }
+});
+
+// ── Export HTML ───────────────────────────────────────────────────────────────
+function buildDBBlock(entries) {
+  const lines = entries.map(e =>
+    '  {Cislodilu:"' + e.Cislodilu + '",Sestava:"' + e.Sestava +
+    '",Podsestava:"' + e.Podsestava + '",Pozice:"' + e.Pozice +
+    '",Mnozstvi:"' + e.Mnozstvi + '"}'
+  );
+  return 'const DB = [\n' + lines.join(',\n') + '\n];';
+}
+
+async function fetchAndReplace(filename) {
+  const response = await fetch(filename);
+  if (!response.ok) throw new Error('Nelze načíst ' + filename);
+  let html = await response.text();
+  const newDB = buildDBBlock(parsedDB);
+  html = html.replace(/const DB = \[.*?\];/s, newDB);
+  return html;
+}
+
+function downloadFile(content, filename) {
+  const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('btnExportIndex').addEventListener('click', async () => {
+  const s = document.getElementById('exportStatus');
+  try {
+    s.className = 'status info'; s.textContent = 'Generuji index.html...';
+    const html = await fetchAndReplace('index.html');
+    downloadFile(html, 'index.html');
+    s.className = 'status ok'; s.textContent = '✓ index.html stažen';
+  } catch(e) { s.className = 'status err'; s.textContent = 'Chyba: ' + e.message; }
+});
+
+document.getElementById('btnExportChecklist').addEventListener('click', async () => {
+  const s = document.getElementById('exportStatus');
+  try {
+    s.className = 'status info'; s.textContent = 'Generuji checklist.html...';
+    const html = await fetchAndReplace('checklist.html');
+    downloadFile(html, 'checklist.html');
+    s.className = 'status ok'; s.textContent = '✓ checklist.html stažen';
+  } catch(e) { s.className = 'status err'; s.textContent = 'Chyba: ' + e.message; }
+});
+
+</script>
+</body>
+</html>

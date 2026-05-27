@@ -524,6 +524,7 @@
   <div class="separator"></div>
   <h1>Vyhledávač dílů</h1>
   <a href="checklist.html" class="btn-checklist">&#9745; Kontrola sestavy</a>
+  <a href="admin.html" class="btn-checklist" style="margin-left:8px;border-color:var(--text-muted);color:var(--text-muted)">&#9881; Admin</a>
 </header>
 
 <main>
@@ -2098,6 +2099,20 @@ const DB = [
   {Cislodilu:"3X3977",Sestava:"23X260",Podsestava:"1",Pozice:"1",Mnozstvi:"32"},
   {Cislodilu:"2519520004",Sestava:"23X260",Podsestava:"1",Pozice:"2",Mnozstvi:"64"}
 ];
+
+// Načti DB z localStorage pokud existuje (nahrána přes admin.html)
+(function() {
+  try {
+    var raw = localStorage.getItem('x2_db');
+    if (raw) {
+      var localDB = JSON.parse(raw);
+      if (localDB && localDB.length > 0) {
+        DB.length = 0;
+        localDB.forEach(function(d) { DB.push(d); });
+      }
+    }
+  } catch(e) {}
+})();
 
 // ============================================================
 // VYHLEDÁVÁNÍ
