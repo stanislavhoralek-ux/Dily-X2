@@ -74,6 +74,18 @@
   .reset-row { display: flex; justify-content: flex-end; margin-top: 12px; }
 
   /* Detail nalezeného dílu */
+  .scan-result { display: none; margin-top: 12px; }
+  .scan-result.active { display: block; }
+  .result-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; overflow: hidden; margin-bottom: 8px; }
+  .result-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--accent); }
+  .result-part-number { font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 600; color: var(--accent); letter-spacing: 2px; margin-bottom: 12px; padding-left: 12px; }
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-left: 12px; }
+  .result-field { background: var(--surface); border-radius: 6px; padding: 10px 12px; }
+  .result-field-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+  .result-field-value { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; color: var(--text); }
+  .result-field.highlight .result-field-value { color: var(--accent2); }
+
+  /* Detail nalezeného dílu */
   .scan-result { display: none; margin-top: 12px; animation: slideIn 0.25s ease; }
   .scan-result.active { display: block; }
   @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -113,29 +125,7 @@
       <button class="btn-ok" id="btnScan">OK</button>
     </div>
     <div class="scan-status" id="scanStatus"></div>
-    <div class="scan-result" id="scanResult">
-      <div class="result-card">
-        <div class="result-part-number" id="srPartNumber"></div>
-        <div class="result-grid">
-          <div class="result-field">
-            <div class="result-field-label">Podsestava</div>
-            <div class="result-field-value" id="srPodsestava"></div>
-          </div>
-          <div class="result-field highlight">
-            <div class="result-field-label">Pozice</div>
-            <div class="result-field-value" id="srPozice"></div>
-          </div>
-          <div class="result-field">
-            <div class="result-field-label">Množství</div>
-            <div class="result-field-value" id="srMnozstvi"></div>
-          </div>
-          <div class="result-field">
-            <div class="result-field-label">Stav</div>
-            <div class="result-field-value" id="srStav"></div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <div class="scan-result" id="scanResult"></div>
     <div class="camera-container" id="cameraContainer">
       <div class="camera-header">
         <span>Namiř na číslo dílu (nad QTY)</span>
@@ -3513,20 +3503,39 @@ function processScan(value) {
   if (!q) return;
   document.getElementById('scanInput').value = '';
   const unique = getUniqueParts(currentAssembly);
+  const scanResult = document.getElementById('scanResult');
   if (unique[q]) {
     const entries = unique[q];
-    // Zobraz detail dílu
-    document.getElementById('srPartNumber').textContent = q;
-    document.getElementById('srPodsestava').textContent = entries.map(e => e.Podsestava).join(', ');
-    document.getElementById('srPozice').textContent = entries.map(e => e.Pozice).join(', ');
-    document.getElementById('srMnozstvi').textContent = entries[0].Mnozstvi + ' ks';
-    document.getElementById('srStav').textContent = checkedParts[q] ? '✓ Odškrtnuto' : 'Nové';
-    document.getElementById('srStav').style.color = checkedParts[q] ? 'var(--success)' : 'var(--accent)';
-    document.getElementById('scanResult').classList.add('active');
-    if (checkedParts[q]) showScanStatus(q + ' — již odškrtnuto', 'ok');
+    const isChecked = !!checkedParts[q];
+    // Zobraz kartu pro každý výskyt dílu (stejně jako na první stránce)
+    scanResult.innerHTML = entries.map(e => `
+      <div class="result-card">
+        <div class="result-part-number">${e.Cislodilu}</div>
+        <div class="result-grid">
+          <div class="result-field">
+            <div class="result-field-label">Sestava</div>
+            <div class="result-field-value">${e.Sestava}</div>
+          </div>
+          <div class="result-field">
+            <div class="result-field-label">Podsestava</div>
+            <div class="result-field-value">${e.Podsestava}</div>
+          </div>
+          <div class="result-field highlight">
+            <div class="result-field-label">Pozice</div>
+            <div class="result-field-value">${e.Pozice}</div>
+          </div>
+          <div class="result-field">
+            <div class="result-field-label">Množství</div>
+            <div class="result-field-value">${e.Mnozstvi} ks</div>
+          </div>
+        </div>
+      </div>`).join('');
+    scanResult.classList.add('active');
+    if (isChecked) showScanStatus(q + ' \u2014 ji\u017e od\u0161krtnuto', 'ok');
     else { togglePart(q); showScanStatus('\u2713 ' + q + ' od\u0161krtnuto', 'ok'); }
   } else {
-    document.getElementById('scanResult').classList.remove('active');
+    scanResult.classList.remove('active');
+    scanResult.innerHTML = '';
     showScanStatus(q + ' \u2014 nen\u00ed v sestav\u011b ' + currentAssembly, 'err');
   }
 }
