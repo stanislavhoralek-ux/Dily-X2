@@ -124,13 +124,21 @@ async function loadCurrentInfo() {
   const el = document.getElementById('currentInfo');
   el.innerHTML = 'Načítám ze Supabase...';
   try {
-    const res = await fetch('https://ormoqidxdgpmfunuxmhy.supabase.co/rest/v1/dily?select=Sestava&order=id', {
-      headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8' }
+    // Použij Prefer: count=exact pro přesný počet bez limitu
+    const res = await fetch('https://ormoqidxdgpmfunuxmhy.supabase.co/rest/v1/dily?select=Sestava', {
+      headers: {
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8',
+        'Prefer': 'count=exact',
+        'Range': '0-0'
+      }
     });
+    const countHeader = res.headers.get('content-range');
+    const totalCount = countHeader ? parseInt(countHeader.split('/')[1]) : 0;
     const data = await res.json();
-    if (Array.isArray(data) && data.length > 0) {
+    if (totalCount > 0) {
       const assemblies = [...new Set(data.map(d => d.Sestava))].sort();
-      el.innerHTML = 'Dílů v Supabase: <span>' + data.length + '</span> &nbsp;|&nbsp; Sestav: <span>' + assemblies.length + '</span>';
+      el.innerHTML = 'Dílů v Supabase: <span>' + totalCount + '</span> &nbsp;|&nbsp; Sestav: <span>' + assemblies.length + '+ (odhad)</span>';
     } else {
       el.innerHTML = 'Supabase je prázdná — nahraj Excel pro inicializaci.';
     }
