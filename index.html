@@ -4049,7 +4049,7 @@ function search(query) {
   if (!q) return [];
   const sestava = document.getElementById('assemblyFilter').value;
   return DB.filter(d => {
-    const matchDil = d.Cislodilu.toUpperCase().includes(q);
+    const matchDil = d.Cislodilu.toUpperCase() === q;
     const matchSestava = sestava === '' || d.Sestava === sestava;
     return matchDil && matchSestava;
   });
