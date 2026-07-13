@@ -98,14 +98,14 @@
       <hr class="divider">
       <span class="label">Uložit databázi</span>
 
-      <!-- Lokální uložení -->
-      <button class="btn-primary" id="btnSaveLocal" disabled>💾 ULOŽIT DO PROHLÍŽEČE</button>
+      <!-- Supabase upload -->
+      <button class="btn-primary" id="btnSaveSupabase" disabled>☁ NAHRÁT DO SUPABASE</button>
       <div class="status" id="saveStatus"></div>
 
       <!-- Export HTML -->
       <hr class="divider">
-      <span class="label">Export pro GitHub</span>
-      <p style="font-size:13px; color:var(--text-muted); margin-bottom:4px;">Stáhni aktualizované soubory a nahraj je na GitHub.</p>
+      <span class="label">Export pro GitHub (záloha)</span>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:4px;">Stáhni aktualizované soubory pro nahrání na GitHub.</p>
       <div class="export-grid">
         <button class="btn-secondary" id="btnExportIndex" disabled>⬇ index.html</button>
         <button class="btn-secondary" id="btnExportChecklist" disabled>⬇ checklist.html</button>
@@ -120,21 +120,22 @@
 <script>
 
 // ── Aktuální stav DB ──────────────────────────────────────────────────────────
-function loadCurrentInfo() {
+async function loadCurrentInfo() {
+  const el = document.getElementById('currentInfo');
+  el.innerHTML = 'Načítám ze Supabase...';
   try {
-    const raw = localStorage.getItem('x2_db');
-    if (raw) {
-      const db = JSON.parse(raw);
-      const assemblies = [...new Set(db.map(d => d.Sestava))].sort();
-      document.getElementById('currentInfo').innerHTML =
-        'Dílů: <span>' + db.length + '</span> &nbsp;|&nbsp; ' +
-        'Sestav: <span>' + assemblies.length + '</span> &nbsp;|&nbsp; ' +
-        'Uloženo: <span>' + (localStorage.getItem('x2_db_date') || 'neznámo') + '</span>';
+    const res = await fetch('https://ormoqidxdgpmfunuxmhy.supabase.co/rest/v1/dily?select=Sestava&order=id', {
+      headers: { 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8' }
+    });
+    const data = await res.json();
+    if (Array.isArray(data) && data.length > 0) {
+      const assemblies = [...new Set(data.map(d => d.Sestava))].sort();
+      el.innerHTML = 'Dílů v Supabase: <span>' + data.length + '</span> &nbsp;|&nbsp; Sestav: <span>' + assemblies.length + '</span>';
     } else {
-      document.getElementById('currentInfo').innerHTML = 'Žádná lokální databáze — používá se výchozí z HTML souborů.';
+      el.innerHTML = 'Supabase je prázdná — nahraj Excel pro inicializaci.';
     }
   } catch(e) {
-    document.getElementById('currentInfo').innerHTML = 'Chyba při čtení databáze.';
+    el.innerHTML = 'Nelze se připojit k Supabase.';
   }
 }
 loadCurrentInfo();
@@ -201,7 +202,7 @@ function processFile(file) {
       document.getElementById('previewAssemblyList').innerHTML =
         assemblies.map(a => '<span class="assembly-tag">' + a + '</span>').join('');
       document.getElementById('preview').classList.add('active');
-      document.getElementById('btnSaveLocal').disabled = false;
+      document.getElementById('btnSaveSupabase').disabled = false;
       document.getElementById('btnExportIndex').disabled = false;
       document.getElementById('btnExportChecklist').disabled = false;
 
@@ -213,21 +214,61 @@ function processFile(file) {
   reader.readAsArrayBuffer(file);
 }
 
-// ── Uložit lokálně ────────────────────────────────────────────────────────────
-document.getElementById('btnSaveLocal').addEventListener('click', () => {
+const SUPABASE_URL = 'https://ormoqidxdgpmfunuxmhy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8';
+
+// ── Nahrát do Supabase ────────────────────────────────────────────────────────
+document.getElementById('btnSaveSupabase').addEventListener('click', async () => {
   if (!parsedDB) return;
+  const s = document.getElementById('saveStatus');
+  const btn = document.getElementById('btnSaveSupabase');
+  btn.disabled = true;
+  s.className = 'status info';
+  s.textContent = 'Mažu stará data...';
+
   try {
-    localStorage.setItem('x2_db', JSON.stringify(parsedDB));
-    const now = new Date().toLocaleString('cs-CZ');
-    localStorage.setItem('x2_db_date', now);
-    const s = document.getElementById('saveStatus');
+    // 1. Smaž všechny staré záznamy
+    const delRes = await fetch(SUPABASE_URL + '/rest/v1/dily?id=gte.0', {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+    if (!delRes.ok) throw new Error('Chyba při mazání: ' + delRes.status);
+
+    // 2. Nahraj nová data po dávkách 500
+    const batchSize = 500;
+    let uploaded = 0;
+    for (let i = 0; i < parsedDB.length; i += batchSize) {
+      const batch = parsedDB.slice(i, i + batchSize);
+      s.textContent = 'Nahrávám... ' + Math.min(i + batchSize, parsedDB.length) + ' / ' + parsedDB.length;
+      const insRes = await fetch(SUPABASE_URL + '/rest/v1/dily', {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(batch)
+      });
+      if (!insRes.ok) {
+        const err = await insRes.text();
+        throw new Error('Chyba při nahrávání: ' + err);
+      }
+      uploaded += batch.length;
+    }
+
     s.className = 'status ok';
-    s.textContent = '✓ Databáze uložena (' + parsedDB.length + ' dílů) — ' + now;
+    s.textContent = '✓ Nahráno do Supabase: ' + uploaded + ' dílů — všechna zařízení se aktualizují automaticky';
+    btn.disabled = false;
     loadCurrentInfo();
   } catch(e) {
-    const s = document.getElementById('saveStatus');
     s.className = 'status err';
-    s.textContent = 'Chyba při ukládání: ' + e.message;
+    s.textContent = 'Chyba: ' + e.message;
+    btn.disabled = false;
   }
 });
 

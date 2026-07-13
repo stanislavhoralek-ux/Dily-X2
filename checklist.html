@@ -3547,19 +3547,48 @@ const DB = [
   {Cislodilu:"2520502002",Sestava:"21X133",Podsestava:"1",Pozice:"47",Mnozstvi:"6"}
 ];
 
-// Načti DB z localStorage pokud existuje (nahrána přes admin.html)
-(function() {
+
+const SUPABASE_URL = 'https://ormoqidxdgpmfunuxmhy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8';
+
+async function loadDBFromSupabase() {
   try {
-    var raw = localStorage.getItem('x2_db');
-    if (raw) {
-      var localDB = JSON.parse(raw);
-      if (localDB && localDB.length > 0) {
-        DB.length = 0;
-        localDB.forEach(function(d) { DB.push(d); });
-      }
+    // Načti všechny záznamy (po 1000 kvůli limitu Supabase)
+    let all = [];
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/dily?select=Cislodilu,Sestava,Podsestava,Pozice,Mnozstvi&order=id&offset=' + from + '&limit=' + pageSize, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+      });
+      const page = await res.json();
+      if (!Array.isArray(page) || page.length === 0) break;
+      all = all.concat(page);
+      if (page.length < pageSize) break;
+      from += pageSize;
     }
-  } catch(e) {}
-})();
+    if (all.length > 0) {
+      DB.length = 0;
+      all.forEach(d => DB.push(d));
+      console.log('Supabase: načteno ' + DB.length + ' dílů');
+    }
+  } catch(e) {
+    console.warn('Supabase nedostupná, používám lokální DB:', e);
+  }
+}
+
+// Spusť načítání ze Supabase při startu — pak inicializuj výběr sestav
+loadDBFromSupabase().then(() => {
+  const sel = document.getElementById('assemblySelect');
+  const current = sel.value;
+  while (sel.options.length > 1) sel.remove(1);
+  [...new Set(DB.map(d => d.Sestava))].sort().forEach(a => {
+    const o = document.createElement('option');
+    o.value = a; o.textContent = a;
+    sel.appendChild(o);
+  });
+  sel.value = current;
+});
 
 const VISION_API_KEY = 'AIzaSyD2X8U8cdc_GoKc_VqzlcxCFo209kBNGT0';
 const VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`;
