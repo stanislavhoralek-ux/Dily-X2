@@ -4206,7 +4206,10 @@ btnCapture.addEventListener('click', async () => {
     });
 
     const data = await response.json();
+    console.log('Vision raw response:', JSON.stringify(data).substring(0, 500));
     const annotations = data.responses?.[0]?.textAnnotations || [];
+    console.log('Annotations count:', annotations.length);
+    if (annotations.length > 0) console.log('First annotation:', annotations[0]?.description?.substring(0, 200));
     let found = null;
 
     if (annotations.length > 1) {
