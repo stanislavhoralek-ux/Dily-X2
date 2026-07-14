@@ -4230,7 +4230,7 @@ btnCapture.addEventListener('click', async () => {
           }
         }
 
-        // Spoj VŠECHNY tokeny na tomto řádku (tolerace ±rowHeight*2)
+        // Vezmi pouze první token na řádku který začíná číslicí — to je číslo dílu
         if (bestRowY > -1) {
           const rowTokens = [];
           for (const ann of annotations.slice(1)) {
@@ -4244,13 +4244,13 @@ btnCapture.addEventListener('click', async () => {
             }
           }
           rowTokens.sort((a, b) => a.left - b.left);
-          // Vezmi jen první token který začíná číslicí a vše co bezprostředně navazuje
-          let combined = '';
+          // Vezmi POUZE první token který začíná číslicí
           for (const t of rowTokens) {
-            if (combined === '' && /^\d/.test(t.text)) combined = t.text;
-            else if (combined !== '') combined += t.text;
+            if (/^\d/.test(t.text) && t.text.length >= 4) {
+              found = t.text;
+              break;
+            }
           }
-          if (combined.length >= 4) found = combined;
         }
       }
     }
