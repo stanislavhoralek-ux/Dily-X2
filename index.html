@@ -4228,6 +4228,14 @@ btnCapture.addEventListener('click', async () => {
           }
         }
 
+        // DEBUG: vypiš všechny tokeny s jejich pozicemi
+        console.log('QTY top Y:', qtyTop, 'bestRowY:', bestRowY, 'rowHeight:', rowHeight);
+        for (const ann of annotations.slice(1)) {
+          const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
+          const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
+          console.log('token:', JSON.stringify(ann.description), 'bottom:', annBottom, 'left:', annLeft, 'diff:', Math.abs(annBottom - bestRowY));
+        }
+
         // Spoj VŠECHNY tokeny na tomto řádku (tolerace ±rowHeight)
         if (bestRowY > -1) {
           const rowTokens = [];
@@ -4241,9 +4249,9 @@ btnCapture.addEventListener('click', async () => {
               });
             }
           }
-          // Seřaď tokeny zleva doprava a spoj
           rowTokens.sort((a, b) => a.left - b.left);
           const combined = rowTokens.map(t => t.text).join('');
+          console.log('rowTokens:', rowTokens.map(t => t.text), 'combined:', combined);
           if (combined.length >= 4 && /^\d/.test(combined)) found = combined;
         }
       }
