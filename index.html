@@ -4213,18 +4213,39 @@ btnCapture.addEventListener('click', async () => {
       const qtyAnn = annotations.find(a => a.description.toUpperCase() === 'QTY');
       if (qtyAnn) {
         const qtyTop = Math.min(...qtyAnn.boundingPoly.vertices.map(v => v.y || 0));
+        const qtyBottom = Math.max(...qtyAnn.boundingPoly.vertices.map(v => v.y || 0));
         const qtyRight = Math.max(...qtyAnn.boundingPoly.vertices.map(v => v.x || 0));
-        let bestY = -1, bestCand = null;
+        const rowHeight = qtyBottom - qtyTop;
+
+        // Najdi Y řádku s číslem dílu (těsně nad QTY)
+        let bestRowY = -1;
         for (const ann of annotations.slice(1)) {
           const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
           const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
-          const desc = ann.description.replace(/\s+/g, '').toUpperCase()
-            .replace(/^O(?=[A-Z0-9])/, '0');
-          if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 4 && annLeft < qtyRight) {
-            if (annBottom > bestY) { bestY = annBottom; bestCand = desc; }
+          const desc = ann.description.replace(/\s+/g, '').toUpperCase().replace(/^O(?=[A-Z0-9])/, '0');
+          if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 2 && annLeft < qtyRight) {
+            if (annBottom > bestRowY) bestRowY = annBottom;
           }
         }
-        if (bestCand) found = bestCand;
+
+        // Spoj VŠECHNY tokeny na tomto řádku (tolerace ±rowHeight)
+        if (bestRowY > -1) {
+          const rowTokens = [];
+          for (const ann of annotations.slice(1)) {
+            const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
+            const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
+            if (Math.abs(annBottom - bestRowY) <= rowHeight && annLeft < qtyRight * 1.2) {
+              rowTokens.push({
+                left: annLeft,
+                text: ann.description.replace(/\s+/g, '').toUpperCase().replace(/^O(?=[A-Z0-9])/, '0')
+              });
+            }
+          }
+          // Seřaď tokeny zleva doprava a spoj
+          rowTokens.sort((a, b) => a.left - b.left);
+          const combined = rowTokens.map(t => t.text).join('');
+          if (combined.length >= 4 && /^\d/.test(combined)) found = combined;
+        }
       }
     }
 
