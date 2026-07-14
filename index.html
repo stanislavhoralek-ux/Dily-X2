@@ -4220,32 +4220,23 @@ btnCapture.addEventListener('click', async () => {
         const qtyRight = Math.max(...qtyAnn.boundingPoly.vertices.map(v => v.x || 0));
         const rowHeight = qtyBottom - qtyTop;
 
-        // Najdi Y řádku s číslem dílu (těsně nad QTY)
+        // Najdi token těsně nad QTY který začíná číslicí — bez omezení na left < qtyRight
         let bestRowY = -1;
         for (const ann of annotations.slice(1)) {
           const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
-          const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
           const desc = ann.description.replace(/\s+/g, '').toUpperCase().replace(/^O(?=[A-Z0-9])/, '0');
-          if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 2 && annLeft < qtyRight) {
+          if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 2) {
             if (annBottom > bestRowY) bestRowY = annBottom;
           }
         }
 
-        // DEBUG: vypiš všechny tokeny s jejich pozicemi
-        console.log('QTY top Y:', qtyTop, 'bestRowY:', bestRowY, 'rowHeight:', rowHeight);
-        for (const ann of annotations.slice(1)) {
-          const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
-          const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
-          console.log('token:', JSON.stringify(ann.description), 'bottom:', annBottom, 'left:', annLeft, 'diff:', Math.abs(annBottom - bestRowY));
-        }
-
-        // Spoj VŠECHNY tokeny na tomto řádku (tolerace ±rowHeight)
+        // Spoj VŠECHNY tokeny na tomto řádku (tolerace ±rowHeight*2)
         if (bestRowY > -1) {
           const rowTokens = [];
           for (const ann of annotations.slice(1)) {
             const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
             const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
-            if (Math.abs(annBottom - bestRowY) <= rowHeight && annLeft < qtyRight * 1.2) {
+            if (Math.abs(annBottom - bestRowY) <= rowHeight * 2) {
               rowTokens.push({
                 left: annLeft,
                 text: ann.description.replace(/\s+/g, '').toUpperCase().replace(/^O(?=[A-Z0-9])/, '0')
@@ -4253,9 +4244,13 @@ btnCapture.addEventListener('click', async () => {
             }
           }
           rowTokens.sort((a, b) => a.left - b.left);
-          const combined = rowTokens.map(t => t.text).join('');
-          console.log('rowTokens:', rowTokens.map(t => t.text), 'combined:', combined);
-          if (combined.length >= 4 && /^\d/.test(combined)) found = combined;
+          // Vezmi jen první token který začíná číslicí a vše co bezprostředně navazuje
+          let combined = '';
+          for (const t of rowTokens) {
+            if (combined === '' && /^\d/.test(t.text)) combined = t.text;
+            else if (combined !== '') combined += t.text;
+          }
+          if (combined.length >= 4) found = combined;
         }
       }
     }
