@@ -71,7 +71,18 @@
   .all-done { display: none; text-align: center; padding: 24px; color: var(--success); font-family: 'IBM Plex Mono', monospace; font-size: 14px; letter-spacing: 1px; }
   .all-done.active { display: block; }
   .all-done .icon { font-size: 40px; margin-bottom: 10px; }
-  .reset-row { display: flex; justify-content: flex-end; margin-top: 12px; }
+  .reset-row { display: flex; justify-content: space-between; margin-top: 12px; gap: 8px; }
+  .btn-finish { background: var(--accent2); color: #fff; border: none; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 1px; padding: 8px 16px; cursor: pointer; }
+  .btn-finish:hover { opacity: 0.85; }
+
+  /* PDF overlay */
+  .pdf-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; align-items: center; justify-content: center; }
+  .pdf-overlay.active { display: flex; }
+  .pdf-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; max-width: 480px; width: 90%; }
+  .pdf-title { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: var(--accent); letter-spacing: 1px; margin-bottom: 16px; }
+  .pdf-actions { display: flex; gap: 8px; margin-top: 20px; }
+  .btn-download { flex: 1; background: var(--accent); color: #0f1117; border: none; border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 1px; padding: 11px; cursor: pointer; }
+  .btn-close-pdf { flex: 1; background: transparent; color: var(--text-muted); border: 1px solid var(--border); border-radius: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 1px; padding: 11px; cursor: pointer; }
 
   /* Detail nalezeného dílu */
   .scan-result { display: none; margin-top: 12px; }
@@ -146,7 +157,8 @@
       <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
     </div>
     <div class="reset-row">
-      <button class="btn-danger" id="btnReset">↺ Reset sestavy</button>
+      <button class="btn-danger" id="btnReset">↺ Reset</button>
+      <button class="btn-finish" id="btnFinish">&#9632; Ukončit a generovat PDF</button>
     </div>
   </div>
 
@@ -163,6 +175,18 @@
     <div id="missingList"></div>
   </div>
 </main>
+
+<!-- PDF overlay -->
+<div class="pdf-overlay" id="pdfOverlay">
+  <div class="pdf-box">
+    <div class="pdf-title" id="pdfTitle">Chybějící díly</div>
+    <div id="pdfPreview" style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted);max-height:300px;overflow-y:auto;"></div>
+    <div class="pdf-actions">
+      <button class="btn-download" id="btnDownloadPDF">&#11015; Stáhnout PDF</button>
+      <button class="btn-close-pdf" id="btnClosePDF">Zavřít</button>
+    </div>
+  </div>
+</div>
 <script>
 const DB = [
   {Cislodilu:"0P11925",Sestava:"21P355",Podsestava:"1",Pozice:"1",Mnozstvi:"1"},
@@ -3768,6 +3792,95 @@ document.getElementById('btnReset').addEventListener('click', () => {
   checkedParts = {};
   saveChecked(currentAssembly, checkedParts);
   renderList(); updateProgress();
+});
+
+// ── Ukončit kontrolu a generovat PDF ─────────────────────────────────────────
+let missingForPDF = [];
+
+document.getElementById('btnFinish').addEventListener('click', () => {
+  const unique = getUniqueParts(currentAssembly);
+  missingForPDF = [];
+
+  // Sestav seznam chybějících dílů s detaily
+  Object.keys(unique).forEach(cislodilu => {
+    if (!checkedParts[cislodilu]) {
+      unique[cislodilu].forEach(e => {
+        missingForPDF.push(e);
+      });
+    }
+  });
+
+  if (missingForPDF.length === 0) {
+    alert('Všechny díly jsou odškrtnuty — žádné chybějící díly!');
+    return;
+  }
+
+  // Zobraz náhled
+  const now = new Date().toLocaleDateString('cs-CZ');
+  document.getElementById('pdfTitle').textContent = 'Chybějící díly — ' + currentAssembly + ' (' + now + ')';
+
+  let preview = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+  preview += '<tr style="color:var(--accent);border-bottom:1px solid var(--border);">';
+  preview += '<th style="text-align:left;padding:4px 8px;">Číslo dílu</th>';
+  preview += '<th style="text-align:left;padding:4px 8px;">Podsestava</th>';
+  preview += '<th style="text-align:left;padding:4px 8px;">Pozice</th>';
+  preview += '<th style="text-align:left;padding:4px 8px;">Ks</th></tr>';
+  missingForPDF.forEach(e => {
+    preview += '<tr style="border-bottom:1px solid var(--border);">';
+    preview += '<td style="padding:4px 8px;">' + e.Cislodilu + '</td>';
+    preview += '<td style="padding:4px 8px;">' + e.Podsestava + '</td>';
+    preview += '<td style="padding:4px 8px;">' + e.Pozice + '</td>';
+    preview += '<td style="padding:4px 8px;">' + e.Mnozstvi + '</td></tr>';
+  });
+  preview += '</table>';
+  document.getElementById('pdfPreview').innerHTML = preview;
+  document.getElementById('pdfOverlay').classList.add('active');
+});
+
+document.getElementById('btnClosePDF').addEventListener('click', () => {
+  document.getElementById('pdfOverlay').classList.remove('active');
+});
+
+document.getElementById('btnDownloadPDF').addEventListener('click', () => {
+  const now = new Date().toLocaleDateString('cs-CZ');
+  const nowFull = new Date().toLocaleString('cs-CZ');
+
+  // Sestav HTML pro PDF
+  let html = '<!DOCTYPE html><html><head><meta charset="UTF-8">';
+  html += '<style>';
+  html += 'body{font-family:Arial,sans-serif;margin:40px;color:#111;}';
+  html += 'h1{font-size:18px;margin-bottom:4px;}';
+  html += 'h2{font-size:13px;color:#666;font-weight:normal;margin-bottom:20px;}';
+  html += 'table{width:100%;border-collapse:collapse;font-size:12px;}';
+  html += 'th{background:#0f1117;color:#00e5ff;text-align:left;padding:8px 12px;font-size:11px;letter-spacing:1px;}';
+  html += 'td{padding:8px 12px;border-bottom:1px solid #e0e0e0;}';
+  html += 'tr:nth-child(even) td{background:#f9f9f9;}';
+  html += '.footer{margin-top:30px;font-size:10px;color:#999;}';
+  html += '</style></head><body>';
+  html += '<h1>Chyb&#283;j&#237;c&#237; d&#237;ly &mdash; Sestava ' + currentAssembly + '</h1>';
+  html += '<h2>Datum: ' + nowFull + ' &nbsp;|&nbsp; Po&#269;et chyb&#283;j&#237;c&#237;ch d&#237;l&#367;: ' + missingForPDF.length + '</h2>';
+  html += '<table>';
+  html += '<tr><th>&#268;&#237;slo d&#237;lu</th><th>Podsestava</th><th>Pozice</th><th>Mno&#382;stv&#237; (ks)</th></tr>';
+  missingForPDF.forEach(e => {
+    html += '<tr><td><strong>' + e.Cislodilu + '</strong></td><td>' + e.Podsestava + '</td><td>' + e.Pozice + '</td><td>' + e.Mnozstvi + '</td></tr>';
+  });
+  html += '</table>';
+  html += '<div class="footer">Vygenerov&#225;no aplikac&#237; X2 &mdash; ' + nowFull + '</div>';
+  html += '</body></html>';
+
+  // Otevři v novém okně a spusť tisk jako PDF
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 500);
+
+  // Resetuj checklist
+  checkedParts = {};
+  saveChecked(currentAssembly, checkedParts);
+  document.getElementById('pdfOverlay').classList.remove('active');
+  renderList();
+  updateProgress();
 });
 
 // Kamera
