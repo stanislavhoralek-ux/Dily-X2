@@ -3608,31 +3608,27 @@ async function loadDBFromSupabase() {
 }
 
 // Spusť načítání ze Supabase při startu — pak inicializuj výběr sestav
-loadDBFromSupabase().then(() => {
-  const sel = document.getElementById('assemblySelect');
-  const current = sel.value;
+const VISION_API_KEY = 'AIzaSyD2X8U8cdc_GoKc_VqzlcxCFo209kBNGT0';
+const VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`;
+
+// Sestavy — naplní se PO načtení dat ze Supabase
+const sel = document.getElementById('assemblySelect');
+sel.addEventListener('change', () => {
+  document.getElementById('btnStart').disabled = !sel.value;
+});
+
+function populateAssemblies() {
   while (sel.options.length > 1) sel.remove(1);
   [...new Set(DB.map(d => d.Sestava))].sort().forEach(a => {
     const o = document.createElement('option');
     o.value = a; o.textContent = a;
     sel.appendChild(o);
   });
-  sel.value = current;
-});
+}
 
-const VISION_API_KEY = 'AIzaSyD2X8U8cdc_GoKc_VqzlcxCFo209kBNGT0';
-const VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`;
-
-// Sestavy
-const assemblies = [...new Set(DB.map(d => d.Sestava))].sort();
-const sel = document.getElementById('assemblySelect');
-assemblies.forEach(a => {
-  const opt = document.createElement('option');
-  opt.value = a; opt.textContent = a;
-  sel.appendChild(opt);
-});
-sel.addEventListener('change', () => {
-  document.getElementById('btnStart').disabled = !sel.value;
+// Načti DB ze Supabase a pak naplň sestavy
+loadDBFromSupabase().then(() => {
+  populateAssemblies();
 });
 
 // State
