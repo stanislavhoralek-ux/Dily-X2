@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historie kontrol X2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #222536;
+    --accent: #00e5ff; --accent2: #ff6b35; --text: #e8eaf0;
+    --text-muted: #7b8096; --border: #2e3148;
+    --success: #00c896; --error: #ff4757;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'IBM Plex Sans', sans-serif; min-height: 100vh; display: flex; flex-direction: column; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 40px 40px; opacity: 0.3; pointer-events: none; z-index: 0; }
+  header { position: relative; z-index: 1; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 12px; }
+  .logo { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 3px; color: var(--accent); }
+  header h1 { font-size: 16px; font-weight: 600; color: var(--text); }
+  .separator { width: 1px; height: 24px; background: var(--border); }
+  .btn-back { margin-left: auto; font-size: 12px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; letter-spacing: 1px; color: var(--text-muted); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; text-decoration: none; }
+  main { position: relative; z-index: 1; flex: 1; padding: 24px 16px; max-width: 800px; margin: 0 auto; width: 100%; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: 2px; color: var(--accent); text-transform: uppercase; display: block; margin-bottom: 12px; }
+
+  /* Filtry */
+  .filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .select { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 14px; padding: 8px 12px; outline: none; cursor: pointer; }
+  .select:focus { border-color: var(--accent); }
+
+  /* Stats */
+  .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .stat-box { background: var(--surface2); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat-label { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+  .stat-value { font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600; color: var(--accent); }
+  .stat-value.warn { color: var(--accent2); }
+
+  /* Historie záznamy */
+  .history-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s; }
+  .history-item:hover { border-color: var(--accent); }
+  .history-header { display: flex; align-items: center; gap: 12px; }
+  .history-sestava { font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: var(--text); }
+  .history-datum { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); margin-left: auto; }
+  .history-stats { display: flex; gap: 16px; margin-top: 10px; }
+  .history-stat { font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  .history-stat .val { font-weight: 600; }
+  .history-stat .val.ok { color: var(--success); }
+  .history-stat .val.warn { color: var(--accent2); }
+  .history-stat .val.err { color: var(--error); }
+  .badge { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 2px 8px; border-radius: 4px; margin-left: 8px; }
+  .badge.ok { background: rgba(0,200,150,0.15); color: var(--success); border: 1px solid var(--success); }
+  .badge.warn { background: rgba(255,107,53,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
+
+  /* Detail záznamu */
+  .history-detail { display: none; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .history-detail.active { display: block; }
+  .detail-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .detail-table th { font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: 1.5px; color: var(--accent); text-transform: uppercase; padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--border); }
+  .detail-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
+  .detail-table td:first-child { color: var(--text); font-weight: 600; }
+
+  .empty { text-align: center; padding: 40px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+  .loading { text-align: center; padding: 40px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">X2</div>
+  <div class="separator"></div>
+  <h1>Historie kontrol</h1>
+  <a href="checklist.html" class="btn-back">← Zpět</a>
+</header>
+
+<main>
+
+  <!-- Statistiky -->
+  <div class="card">
+    <span class="label">Celkové statistiky</span>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="stat-label">Kontrol celkem</div>
+        <div class="stat-value" id="statTotal">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Průměr chybějících</div>
+        <div class="stat-value warn" id="statAvgMissing">—</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">Poslední kontrola</div>
+        <div class="stat-value" id="statLast" style="font-size:14px">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtr -->
+  <div class="filter-row">
+    <select id="filterSestava" class="select">
+      <option value="">Všechny sestavy</option>
+    </select>
+  </div>
+
+  <!-- Seznam kontrol -->
+  <div id="historyList"><div class="loading">Načítám historii...</div></div>
+
+</main>
+
+<script>
+const SB_URL = 'https://ormoqidxdgpmfunuxmhy.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8';
+const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY };
+
+let allHistory = [];
+
+async function loadHistory() {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/checklist_history?select=*&order=datum.desc&limit=200', {
+      headers: SB_HEADERS
+    });
+    allHistory = await res.json();
+    if (!Array.isArray(allHistory)) allHistory = [];
+    initFilters();
+    renderStats();
+    renderHistory();
+  } catch(e) {
+    document.getElementById('historyList').innerHTML = '<div class="empty">Chyba při načítání historie.</div>';
+  }
+}
+
+function initFilters() {
+  const assemblies = [...new Set(allHistory.map(h => h.sestava))].sort();
+  const sel = document.getElementById('filterSestava');
+  assemblies.forEach(a => {
+    const o = document.createElement('option');
+    o.value = a; o.textContent = a;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change', renderHistory);
+}
+
+function renderStats() {
+  const total = allHistory.length;
+  const avgMissing = total > 0 ? Math.round(allHistory.reduce((s, h) => s + (h.chybejici_dilu || 0), 0) / total) : 0;
+  const last = total > 0 ? new Date(allHistory[0].datum).toLocaleDateString('cs-CZ') : '—';
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statAvgMissing').textContent = avgMissing;
+  document.getElementById('statLast').textContent = last;
+}
+
+function renderHistory() {
+  const filterSestava = document.getElementById('filterSestava').value;
+  const filtered = allHistory.filter(h => !filterSestava || h.sestava === filterSestava);
+
+  if (filtered.length === 0) {
+    document.getElementById('historyList').innerHTML = '<div class="empty">Žádné záznamy.</div>';
+    return;
+  }
+
+  document.getElementById('historyList').innerHTML = filtered.map((h, i) => {
+    const datum = new Date(h.datum).toLocaleString('cs-CZ');
+    const pct = h.celkem_dilu > 0 ? Math.round((h.celkem_dilu - h.chybejici_dilu) / h.celkem_dilu * 100) : 100;
+    const badgeClass = h.chybejici_dilu === 0 ? 'ok' : 'warn';
+    const badgeText = h.chybejici_dilu === 0 ? '✓ KOMPLETNÍ' : h.chybejici_dilu + ' CHYBÍ';
+
+    let detailRows = '';
+    if (Array.isArray(h.chybejici_seznam) && h.chybejici_seznam.length > 0) {
+      detailRows = h.chybejici_seznam.map(e =>
+        '<tr><td>' + e.Cislodilu + '</td><td>' + e.Podsestava + '</td><td>' + e.Pozice + '</td><td>' + e.Mnozstvi + ' ks</td></tr>'
+      ).join('');
+    }
+
+    return '<div class="history-item" onclick="toggleDetail(this)">' +
+      '<div class="history-header">' +
+        '<div class="history-sestava">' + h.sestava + '<span class="badge ' + badgeClass + '">' + badgeText + '</span></div>' +
+        '<div class="history-datum">' + datum + '</div>' +
+      '</div>' +
+      '<div class="history-stats">' +
+        '<div class="history-stat">Celkem: <span class="val">' + h.celkem_dilu + '</span></div>' +
+        '<div class="history-stat">Odškrtnuto: <span class="val ok">' + (h.celkem_dilu - h.chybejici_dilu) + '</span></div>' +
+        '<div class="history-stat">Chybějící: <span class="val ' + (h.chybejici_dilu > 0 ? 'err' : 'ok') + '">' + h.chybejici_dilu + '</span></div>' +
+        '<div class="history-stat">Splněno: <span class="val ' + (pct === 100 ? 'ok' : 'warn') + '">' + pct + '%</span></div>' +
+      '</div>' +
+      (detailRows ? '<div class="history-detail"><table class="detail-table"><tr><th>Číslo dílu</th><th>Podsestava</th><th>Pozice</th><th>Množství</th></tr>' + detailRows + '</table></div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function toggleDetail(el) {
+  const detail = el.querySelector('.history-detail');
+  if (detail) detail.classList.toggle('active');
+}
+
+loadHistory();
+</script>
+</body>
+</html>

@@ -116,6 +116,7 @@
   <div class="separator"></div>
   <h1>Kontrola sestavy</h1>
   <a href="index.html" class="btn-back">← Zpět</a>
+  <a href="history.html" class="btn-back" style="margin-left:8px">&#128200; Historie</a>
   <a href="admin.html" class="btn-back" style="margin-left:8px">&#9881; Admin</a>
 </header>
 
@@ -3637,21 +3638,103 @@ sel.addEventListener('change', () => {
 // State
 let currentAssembly = null;
 let checkedParts = {};
+let realtimeChannel = null;
 
-function storageKey(a) { return 'checklist_' + a; }
-function loadChecked(a) { try { const r = localStorage.getItem(storageKey(a)); return r ? JSON.parse(r) : {}; } catch(e) { return {}; } }
-function saveChecked(a, d) { try { localStorage.setItem(storageKey(a), JSON.stringify(d)); } catch(e) {} }
+const SB_URL = 'https://ormoqidxdgpmfunuxmhy.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8';
+const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+
+// Načti stav ze Supabase
+async function loadChecked(assembly) {
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/checklist_state?select=cislodilu&sestava=eq.' + encodeURIComponent(assembly), {
+      headers: SB_HEADERS
+    });
+    const rows = await res.json();
+    const result = {};
+    if (Array.isArray(rows)) rows.forEach(r => { result[r.cislodilu] = true; });
+    return result;
+  } catch(e) { return {}; }
+}
+
+// Ulož odškrtnutí do Supabase
+async function saveCheckedItem(assembly, cislodilu, checked) {
+  try {
+    if (checked) {
+      await fetch(SB_URL + '/rest/v1/checklist_state', {
+        method: 'POST',
+        headers: { ...SB_HEADERS, 'Prefer': 'return=minimal,resolution=ignore-duplicates' },
+        body: JSON.stringify({ sestava: assembly, cislodilu: cislodilu })
+      });
+    } else {
+      await fetch(SB_URL + '/rest/v1/checklist_state?sestava=eq.' + encodeURIComponent(assembly) + '&cislodilu=eq.' + encodeURIComponent(cislodilu), {
+        method: 'DELETE',
+        headers: SB_HEADERS
+      });
+    }
+  } catch(e) { console.warn('Supabase save error:', e); }
+}
+
+// Reset — smaž všechny záznamy sestavy
+async function clearChecked(assembly) {
+  try {
+    await fetch(SB_URL + '/rest/v1/checklist_state?sestava=eq.' + encodeURIComponent(assembly), {
+      method: 'DELETE',
+      headers: SB_HEADERS
+    });
+  } catch(e) { console.warn('Supabase clear error:', e); }
+}
+
+// Ulož historii ukončené kontroly
+async function saveHistory(assembly, total, missingList) {
+  try {
+    await fetch(SB_URL + '/rest/v1/checklist_history', {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        sestava: assembly,
+        celkem_dilu: total,
+        chybejici_dilu: missingList.length,
+        chybejici_seznam: missingList
+      })
+    });
+  } catch(e) { console.warn('Supabase history error:', e); }
+}
+
+// Real-time polling — každých 5s načti stav ze Supabase
+function startRealtime(assembly) {
+  stopRealtime();
+  realtimeChannel = setInterval(async () => {
+    const fresh = await loadChecked(assembly);
+    const prevCount = Object.keys(checkedParts).length;
+    const newCount = Object.keys(fresh).length;
+    if (newCount !== prevCount) {
+      checkedParts = fresh;
+      renderList();
+      updateProgress();
+      showScanStatus('↻ Stav aktualizován ze serveru', 'ok');
+    }
+  }, 5000);
+}
+
+function stopRealtime() {
+  if (realtimeChannel) { clearInterval(realtimeChannel); realtimeChannel = null; }
+}
 
 // Spustit
 document.getElementById('btnStart').addEventListener('click', () => {
   currentAssembly = sel.value;
-  checkedParts = loadChecked(currentAssembly);
   document.getElementById('setupCard').style.display = 'none';
   document.getElementById('scanCard').style.display = 'block';
   document.getElementById('partsList').classList.add('active');
-  renderList();
-  updateProgress();
   document.getElementById('scanInput').focus();
+  // Načti stav ze Supabase
+  loadChecked(currentAssembly).then(data => {
+    checkedParts = data;
+    renderList();
+    updateProgress();
+    startRealtime(currentAssembly);
+  });
 });
 
 // Unikátní díly v sestavě
@@ -3703,11 +3786,11 @@ function renderList() {
 function togglePart(cislodilu) {
   if (checkedParts[cislodilu]) delete checkedParts[cislodilu];
   else checkedParts[cislodilu] = true;
-  saveChecked(currentAssembly, checkedParts);
+  const isChecked = !!checkedParts[cislodilu];
+  saveCheckedItem(currentAssembly, cislodilu, isChecked);
   document.querySelectorAll('.part-item[data-cislodilu="' + cislodilu + '"]').forEach(el => {
-    const ok = !!checkedParts[cislodilu];
-    el.classList.toggle('checked', ok);
-    el.querySelector('.part-checkbox').textContent = ok ? '✓' : '';
+    el.classList.toggle('checked', isChecked);
+    el.querySelector('.part-checkbox').textContent = isChecked ? '✓' : '';
   });
   updateProgress();
   updateMissing();
@@ -3787,10 +3870,10 @@ document.getElementById('btnScan').addEventListener('click', () => processScan(d
 document.getElementById('scanInput').addEventListener('keydown', e => { if (e.key === 'Enter') processScan(document.getElementById('scanInput').value); });
 
 // Reset
-document.getElementById('btnReset').addEventListener('click', () => {
+document.getElementById('btnReset').addEventListener('click', async () => {
   if (!confirm('Opravdu resetovat kontrolu sestavy ' + currentAssembly + '?')) return;
   checkedParts = {};
-  saveChecked(currentAssembly, checkedParts);
+  await clearChecked(currentAssembly);
   renderList(); updateProgress();
 });
 
@@ -3875,12 +3958,24 @@ document.getElementById('btnDownloadPDF').addEventListener('click', () => {
   win.focus();
   setTimeout(() => { win.print(); }, 500);
 
+  // Ulož historii do Supabase
+  const unique = getUniqueParts(currentAssembly);
+  await saveHistory(currentAssembly, Object.keys(unique).length, missingForPDF);
+
   // Resetuj checklist
   checkedParts = {};
-  saveChecked(currentAssembly, checkedParts);
+  await clearChecked(currentAssembly);
+  stopRealtime();
   document.getElementById('pdfOverlay').classList.remove('active');
-  renderList();
-  updateProgress();
+
+  // Vrať na úvodní obrazovku výběru sestavy
+  document.getElementById('scanCard').style.display = 'none';
+  document.getElementById('partsList').classList.remove('active');
+  document.getElementById('missingSection').classList.remove('active');
+  document.getElementById('scanResult').classList.remove('active');
+  document.getElementById('setupCard').style.display = 'block';
+  currentAssembly = null;
+  checkedParts = {};
 });
 
 // Kamera
