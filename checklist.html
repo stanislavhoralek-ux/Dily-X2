@@ -3918,7 +3918,7 @@ document.getElementById('btnClosePDF').addEventListener('click', () => {
   document.getElementById('pdfOverlay').classList.remove('active');
 });
 
-document.getElementById('btnDownloadPDF').addEventListener('click', () => {
+document.getElementById('btnDownloadPDF').addEventListener('click', async () => {
   const now = new Date().toLocaleDateString('cs-CZ');
   const nowFull = new Date().toLocaleString('cs-CZ');
 
