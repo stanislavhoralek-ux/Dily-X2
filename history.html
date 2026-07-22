@@ -60,6 +60,8 @@
   .detail-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); }
   .detail-table td:first-child { color: var(--text); font-weight: 600; }
 
+  .btn-delete { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 4px 8px; border-radius: 4px; transition: color 0.2s; flex-shrink: 0; }
+  .btn-delete:hover { color: var(--error); }
   .empty { text-align: center; padding: 40px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
   .loading { text-align: center; padding: 40px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
 </style>
@@ -170,10 +172,11 @@ function renderHistory() {
       ).join('');
     }
 
-    return '<div class="history-item" onclick="toggleDetail(this)">' +
-      '<div class="history-header">' +
+    return '<div class="history-item" id="hitem-' + h.id + '">' +
+      '<div class="history-header" onclick="toggleDetail(this.parentElement)" style="cursor:pointer">' +
         '<div class="history-sestava">' + h.sestava + '<span class="badge ' + badgeClass + '">' + badgeText + '</span></div>' +
         '<div class="history-datum">' + datum + '</div>' +
+        '<button class="btn-delete" onclick="deleteRecord(event,' + h.id + ')" title="Smazat záznam">&#128465;</button>' +
       '</div>' +
       '<div class="history-stats">' +
         '<div class="history-stat">Celkem: <span class="val">' + h.celkem_dilu + '</span></div>' +
@@ -189,6 +192,24 @@ function renderHistory() {
 function toggleDetail(el) {
   const detail = el.querySelector('.history-detail');
   if (detail) detail.classList.toggle('active');
+}
+
+async function deleteRecord(event, id) {
+  event.stopPropagation();
+  if (!confirm('Opravdu smazat tento záznam?')) return;
+  try {
+    const res = await fetch(SB_URL + '/rest/v1/checklist_history?id=eq.' + id, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    if (res.ok) {
+      allHistory = allHistory.filter(h => h.id !== id);
+      renderStats();
+      renderHistory();
+    }
+  } catch(e) {
+    alert('Chyba při mazání: ' + e.message);
+  }
 }
 
 loadHistory();
