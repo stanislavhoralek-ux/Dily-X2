@@ -3874,7 +3874,7 @@ document.getElementById('btnReset').addEventListener('click', async () => {
 // ── Ukončit kontrolu a generovat PDF ─────────────────────────────────────────
 let missingForPDF = [];
 
-document.getElementById('btnFinish').addEventListener('click', () => {
+document.getElementById('btnFinish').addEventListener('click', async () => {
   const unique = getUniqueParts(currentAssembly);
   missingForPDF = [];
 
