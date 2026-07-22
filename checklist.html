@@ -3636,14 +3636,12 @@ let currentAssembly = null;
 let checkedParts = {};
 let realtimeChannel = null;
 
-const SB_URL = 'https://ormoqidxdgpmfunuxmhy.supabase.co';
-const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8';
-const SB_HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+const SB_HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
 
 // Načti stav ze Supabase
 async function loadChecked(assembly) {
   try {
-    const res = await fetch(SB_URL + '/rest/v1/checklist_state?select=cislodilu&sestava=eq.' + encodeURIComponent(assembly), {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/checklist_state?select=cislodilu&sestava=eq.' + encodeURIComponent(assembly), {
       headers: SB_HEADERS
     });
     const rows = await res.json();
@@ -3657,13 +3655,13 @@ async function loadChecked(assembly) {
 async function saveCheckedItem(assembly, cislodilu, checked) {
   try {
     if (checked) {
-      await fetch(SB_URL + '/rest/v1/checklist_state', {
+      await fetch(SUPABASE_URL + '/rest/v1/checklist_state', {
         method: 'POST',
         headers: { ...SB_HEADERS, 'Prefer': 'return=minimal,resolution=ignore-duplicates' },
         body: JSON.stringify({ sestava: assembly, cislodilu: cislodilu })
       });
     } else {
-      await fetch(SB_URL + '/rest/v1/checklist_state?sestava=eq.' + encodeURIComponent(assembly) + '&cislodilu=eq.' + encodeURIComponent(cislodilu), {
+      await fetch(SUPABASE_URL + '/rest/v1/checklist_state?sestava=eq.' + encodeURIComponent(assembly) + '&cislodilu=eq.' + encodeURIComponent(cislodilu), {
         method: 'DELETE',
         headers: SB_HEADERS
       });
@@ -3674,7 +3672,7 @@ async function saveCheckedItem(assembly, cislodilu, checked) {
 // Reset — smaž všechny záznamy sestavy
 async function clearChecked(assembly) {
   try {
-    await fetch(SB_URL + '/rest/v1/checklist_state?sestava=eq.' + encodeURIComponent(assembly), {
+    await fetch(SUPABASE_URL + '/rest/v1/checklist_state?sestava=eq.' + encodeURIComponent(assembly), {
       method: 'DELETE',
       headers: SB_HEADERS
     });
@@ -3684,7 +3682,7 @@ async function clearChecked(assembly) {
 // Ulož historii ukončené kontroly
 async function saveHistory(assembly, total, missingList) {
   try {
-    await fetch(SB_URL + '/rest/v1/checklist_history', {
+    await fetch(SUPABASE_URL + '/rest/v1/checklist_history', {
       method: 'POST',
       headers: { ...SB_HEADERS, 'Prefer': 'return=minimal' },
       body: JSON.stringify({
