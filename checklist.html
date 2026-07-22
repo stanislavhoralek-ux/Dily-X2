@@ -3607,9 +3607,16 @@ async function loadDBFromSupabase() {
   }
 }
 
-// Spusť načítání ze Supabase při startu — pak inicializuj výběr sestav
 const VISION_API_KEY = 'AIzaSyD2X8U8cdc_GoKc_VqzlcxCFo209kBNGT0';
 const VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`;
+
+// Supabase hlavičky musí být definovány před použitím
+const SB_HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
+
+// State
+let currentAssembly = null;
+let checkedParts = {};
+let realtimeChannel = null;
 
 // Sestavy — naplní se PO načtení dat ze Supabase
 const sel = document.getElementById('assemblySelect');
@@ -3630,13 +3637,6 @@ function populateAssemblies() {
 loadDBFromSupabase().then(() => {
   populateAssemblies();
 });
-
-// State
-let currentAssembly = null;
-let checkedParts = {};
-let realtimeChannel = null;
-
-const SB_HEADERS = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json' };
 
 // Načti stav ze Supabase
 async function loadChecked(assembly) {
