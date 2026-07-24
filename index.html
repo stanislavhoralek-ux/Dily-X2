@@ -3,483 +3,606 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MontážApp X2</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Vyhledávač dílů X2</title>
 <style>
-:root{--bg:#0c0e14;--s1:#13161f;--s2:#1c2030;--s3:#252a3a;--bd:#2d334a;--tx:#e4e7f0;--mu:#6b7394;--ac:#4f8ef7;--go:#f0a500;--ok:#22c993;--er:#f05252;--wn:#f5a623;--adm:#a78bfa;}
-body.light{--bg:#f0f2f7;--s1:#ffffff;--s2:#e8eaf0;--s3:#dde0ea;--bd:#c8ccd8;--tx:#1a1d2e;--mu:#6b7394;--ac:#2563eb;--go:#b45309;--ok:#16a34a;--er:#dc2626;--wn:#d97706;--adm:#7c3aed;}
-body.light .tbtn.on{color:#fff;}
-body.light .ubtn.sel .uav{color:#0c0e14;}
-body.light .pin-i{background:#fff;color:#1a1d2e;}
-body.light .inp{background:#fff;color:#1a1d2e;}
-body.light .scani{background:#fff;color:#1a1d2e;}
-*{box-sizing:border-box;margin:0;padding:0;}html,body{height:100%;}
-body{background:var(--bg);color:var(--tx);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;}
-.screen{display:none;height:100vh;flex-direction:column;overflow:hidden;}.screen.on{display:flex;}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s;font-family:inherit;}.btn:hover{opacity:.85;}.btn:disabled{opacity:.3;cursor:not-allowed;pointer-events:none;}
-.btn-primary{background:var(--ac);color:#fff;}.btn-ok{background:var(--ok);color:#0c0e14;}.btn-ghost{background:var(--s2);color:var(--tx);border:1px solid var(--bd);}.btn-danger{background:transparent;color:var(--er);border:1px solid var(--er);}.btn-adm{background:var(--adm);color:#0c0e14;}
-.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;}
-.tag-ok{background:rgba(34,201,147,.12);color:var(--ok);}.tag-er{background:rgba(240,82,82,.12);color:var(--er);}.tag-wn{background:rgba(245,166,35,.12);color:var(--wn);}.tag-go{background:rgba(240,165,0,.12);color:var(--go);}.tag-mu{background:var(--s2);color:var(--mu);}.tag-adm{background:rgba(167,139,250,.12);color:var(--adm);}.tag-ac{background:rgba(79,142,247,.12);color:var(--ac);}
-.lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.5px;color:var(--mu);text-transform:uppercase;display:block;margin-bottom:6px;}
-.inp{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;color:var(--tx);font-size:14px;font-family:inherit;outline:none;}.inp:focus{border-color:var(--ac);}textarea.inp{resize:vertical;min-height:80px;}
-.empty{text-align:center;padding:40px 20px;color:var(--mu);}.empty-ico{font-size:36px;margin-bottom:12px;}
-::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px;}
-/* LOGIN */
-#s-login{align-items:center;justify-content:center;}
-.lbox{width:100%;max-width:400px;padding:24px;}
-.logo{text-align:center;margin-bottom:32px;}.logo-ico{font-size:48px;margin-bottom:10px;}.logo-t{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--go);letter-spacing:3px;}.logo-s{font-size:12px;color:var(--mu);margin-top:4px;}
-.ugrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
-.ubtn{background:var(--s1);border:2px solid var(--bd);border-radius:12px;padding:16px 8px;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:8px;}
-.ubtn:hover,.ubtn.sel{border-color:var(--go);background:rgba(240,165,0,.07);}
-.uav{width:40px;height:40px;border-radius:50%;background:var(--s3);color:var(--mu);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;}.ubtn.sel .uav{background:var(--go);color:#0c0e14;}
-.uname{font-size:11px;color:var(--mu);}
-.pin-r{display:flex;gap:8px;margin-bottom:8px;}
-.pin-i{flex:1;background:var(--bg);border:2px solid var(--bd);border-radius:10px;padding:12px;color:var(--tx);font-size:24px;letter-spacing:12px;text-align:center;font-family:'IBM Plex Mono',monospace;outline:none;}.pin-i:focus{border-color:var(--ac);}.pin-i.err{border-color:var(--er);}
-.pin-err{font-size:12px;color:var(--er);text-align:center;margin-bottom:12px;display:none;font-family:'IBM Plex Mono',monospace;}
-.adm-btn{background:none;border:none;color:var(--adm);font-size:12px;font-family:'IBM Plex Mono',monospace;cursor:pointer;opacity:.7;}.adm-btn:hover{opacity:1;}
-/* TOPBAR */
-.tb{background:var(--s1);border-bottom:1px solid var(--bd);padding:0 14px;height:52px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.tb-t{font-size:15px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.tb-av{width:30px;height:30px;border-radius:50%;background:var(--go);color:#0c0e14;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:11px;flex-shrink:0;}
-/* PROJECT */
-.pcard{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
-.pcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--go);}
-.pcard.closed::before{background:var(--mu);}
-.pcard:hover:not(.closed){border-color:var(--go);transform:translateX(3px);}
-.pcard.closed{opacity:.5;cursor:not-allowed;}
-.pcard-n{font-size:17px;font-weight:700;margin-bottom:4px;padding-left:12px;}
-.pcard-d{font-size:13px;color:var(--mu);margin-bottom:10px;padding-left:12px;}
-.pcard-m{display:flex;gap:8px;flex-wrap:wrap;padding-left:12px;}
-/* ASSEMBLY */
-.asec{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mu);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bd);}
-.acard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:all .15s;}
-.acard:hover{border-color:var(--ac);transform:translateX(3px);}
-.acard.myact{border-color:var(--ok);}.acard.othact{border-color:var(--wn);}
-.acard-id{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--go);font-weight:600;margin-bottom:3px;}
-.acard-n{font-size:15px;font-weight:600;margin-bottom:6px;}
-.acard-m{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-.stimer{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;margin-left:auto;}
-.stimer.g{color:var(--ok);}.stimer.r{color:var(--er);}
-/* WORK */
-.wtb{background:var(--s1);border-bottom:1px solid var(--bd);padding:0 12px;height:52px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
-.wti{flex:1;min-width:0;}
-.wtid{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mu);}
-.wtn{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.tbox{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:6px 14px;flex-shrink:0;}
-.tv{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:700;line-height:1;}.tv.g{color:var(--ok);}.tv.r{color:var(--er);}
-.tlbl{font-size:9px;color:var(--mu);font-family:'IBM Plex Mono',monospace;}
-.ttog{width:28px;height:28px;border-radius:6px;background:none;border:1px solid var(--bd);color:var(--tx);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
-.obar{background:rgba(245,166,35,.1);border-bottom:1px solid rgba(245,166,35,.3);padding:5px 14px;font-size:12px;color:var(--wn);font-family:'IBM Plex Mono',monospace;display:none;flex-shrink:0;}.obar.on{display:block;}
-.pstrip{height:2px;background:var(--bd);flex-shrink:0;}.pfill{height:100%;background:var(--go);transition:width .3s;}
-.srow{display:flex;padding:8px 10px;gap:6px;flex-shrink:0;background:var(--bg);}
-.sbox{flex:1;background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:6px 8px;border-top:2px solid var(--bd);}
-.sbox.go{border-top-color:var(--go);}.sbox.rd{border-top-color:var(--er);}.sbox.bl{border-top-color:var(--ac);}.sbox.gn{border-top-color:var(--ok);}
-.sv{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:700;color:var(--go);line-height:1;}
-.sv.rd{color:var(--er);}.sv.bl{color:var(--ac);}.sv.gn{color:var(--ok);}
-.slb{font-size:8px;color:var(--mu);font-family:'IBM Plex Mono',monospace;letter-spacing:.5px;margin-top:2px;}
-.tabs{display:flex;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;overflow-x:auto;}
-.tbtn{flex:1;min-width:55px;padding:10px 4px;font-size:13px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:#fff;border:none;border-bottom:3px solid transparent;background:none;cursor:pointer;white-space:nowrap;transition:all .15s;opacity:0.5;}
-.tbtn.on{color:#fff;background:var(--go);border-bottom-color:var(--go);border-radius:0;opacity:1;}
-.tpane{display:none;flex:1;overflow-y:auto;padding:16px;}.tpane.on{display:block;}
-.fbar{padding:10px 14px;background:var(--bg);border-top:1px solid var(--bd);flex-shrink:0;}
-.fbtn{width:100%;padding:12px;border-radius:10px;border:none;font-size:13px;font-weight:700;font-family:'IBM Plex Mono',monospace;letter-spacing:1.5px;cursor:pointer;transition:all .15s;}
-.fbtn.on{background:var(--ok);color:#0c0e14;}.fbtn.off{background:var(--s2);color:var(--mu);cursor:not-allowed;}
-.fhint{font-size:11px;color:var(--mu);font-family:'IBM Plex Mono',monospace;text-align:center;margin-top:5px;min-height:15px;}
-/* MILESTONES */
-.msprog{display:flex;gap:5px;margin-bottom:12px;align-items:center;}
-.msdot{width:10px;height:10px;border-radius:50%;background:var(--bd);cursor:pointer;transition:all .2s;flex-shrink:0;}
-.msdot.done{background:var(--ok);}.msdot.cur{background:var(--go);box-shadow:0 0 0 3px rgba(240,165,0,.2);}
-.msprg{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mu);margin-left:auto;}
-.mscard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;overflow:hidden;margin-bottom:12px;}
-.mshdr{padding:14px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px;}
-.msnum{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mu);flex-shrink:0;}
-.mstit{font-size:20px;font-weight:700;flex:1;}
-.msbody{padding:14px 16px;}
-.msdesc{font-size:16px;color:var(--mu);line-height:1.7;margin-bottom:12px;white-space:pre-wrap;}
-.mssteps{margin-bottom:12px;}
-.msstep{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--s2);}.msstep:last-child{border-bottom:none;}
-.mssn{width:26px;height:26px;border-radius:50%;background:rgba(240,165,0,.12);color:var(--go);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'IBM Plex Mono',monospace;margin-top:2px;}
-.msst{font-size:16px;color:var(--tx);line-height:1.7;}
-.msphreq{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:12px;background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.2);color:#8bb4f7;}
-.msphreq.met{background:rgba(34,201,147,.08);border-color:rgba(34,201,147,.2);color:var(--ok);}
-.msconf{width:100%;padding:11px;border-radius:9px;background:var(--ok);color:#0c0e14;border:none;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;}
-.msconf:disabled{opacity:.3;cursor:not-allowed;}
-.msnav{display:flex;gap:8px;margin-top:10px;}
-.msnbtn{flex:1;padding:9px;border-radius:8px;background:var(--s2);border:1px solid var(--bd);color:var(--mu);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;}
-.msnbtn:disabled{opacity:.3;cursor:not-allowed;}
-.msdonebar{background:rgba(34,201,147,.08);border:1px solid rgba(34,201,147,.2);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ok);margin-bottom:8px;}
-/* PARTS */
-.scanrow{display:flex;gap:8px;margin-bottom:8px;}
-.scani{flex:1;background:var(--s2);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-family:'IBM Plex Mono',monospace;font-size:14px;padding:9px 12px;outline:none;}.scani:focus{border-color:var(--ac);}
-.scancam{background:var(--ac);border:none;border-radius:8px;padding:9px 13px;color:#fff;cursor:pointer;font-size:16px;}
-.scanok{background:transparent;color:var(--ac);border:1px solid var(--ac);border-radius:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:9px 14px;cursor:pointer;}
-.scanst{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mu);margin-bottom:8px;min-height:16px;}.scanst.ok{color:var(--ok);}.scanst.er{color:var(--er);}
-.scanres{display:none;margin-bottom:12px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;position:relative;}.scanres::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--ac);border-radius:3px 0 0 3px;}.scanres.on{display:block;}
-.srpn{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:600;color:var(--ac);margin-bottom:10px;padding-left:10px;}
-.srgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding-left:10px;}
-.srf{background:var(--s1);border-radius:6px;padding:8px 10px;}
-.srfl{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
-.srfv{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;}
-.frow{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center;}
-.fbtn2{background:var(--s2);border:1px solid var(--bd);border-radius:6px;color:var(--mu);font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 10px;cursor:pointer;}.fbtn2.on{border-color:var(--ac);color:var(--ac);background:rgba(79,142,247,.08);}
-.markall{margin-left:auto;background:transparent;border:1px solid var(--ok);color:var(--ok);border-radius:6px;font-size:11px;font-family:'IBM Plex Mono',monospace;padding:4px 10px;cursor:pointer;}
-.pprog{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mu);margin-bottom:5px;}.pprog .dn{color:var(--ok);font-weight:600;}
-.pbarw{background:var(--s2);border-radius:4px;height:6px;overflow:hidden;margin-bottom:10px;}
-.pbarf{height:100%;background:var(--ok);border-radius:4px;transition:width .3s;}
-.pshdr{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mu);letter-spacing:2px;text-transform:uppercase;padding:8px 0 4px;border-bottom:1px solid var(--bd);margin-bottom:2px;}
-.prow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--s2);cursor:pointer;}.prow:last-child{border-bottom:none;}.prow.ck{opacity:.45;}
-.pchk{width:20px;height:20px;border-radius:5px;border:2px solid var(--bd);background:var(--s2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .15s;}.prow.ck .pchk{background:var(--ok);border-color:var(--ok);color:#0c0e14;}
-.pinfo{flex:1;min-width:0;}.pnum{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;}.prow.ck .pnum{text-decoration:line-through;color:var(--mu);}
-.pmeta{font-size:11px;color:var(--mu);margin-top:1px;}
-.palldone{display:none;text-align:center;padding:20px;color:var(--ok);font-family:'IBM Plex Mono',monospace;font-size:13px;}.palldone.on{display:block;}
-.cambox{display:none;margin-bottom:10px;border-radius:10px;overflow:hidden;border:1px solid var(--bd);}.cambox.on{display:block;}
-.camhdr{background:var(--s2);padding:7px 12px;display:flex;justify-content:space-between;align-items:center;font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--mu);}
-.camx{background:none;border:none;color:var(--mu);cursor:pointer;font-size:15px;}
-#camVid{width:100%;display:block;max-height:220px;object-fit:cover;background:#000;}#camCnv{display:none;}
-.camctl{padding:8px 12px;display:flex;gap:8px;align-items:center;background:var(--s2);}
-.camsnap{flex:1;background:var(--ac);border:none;border-radius:7px;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:8px;cursor:pointer;}.camsnap:disabled{opacity:.4;cursor:not-allowed;}
-/* ISSUES */
-.itog{background:transparent;color:var(--go);border:1px solid var(--go);border-radius:8px;padding:7px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;cursor:pointer;margin-bottom:12px;}
-.iform{background:var(--s1);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:12px;}
-.prirow{display:flex;gap:6px;margin-bottom:12px;}
-.pbtn{padding:5px 12px;border-radius:6px;border:1.5px solid transparent;font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;cursor:pointer;}
-.pbtn.low{background:rgba(34,201,147,.1);color:var(--ok);}.pbtn.med{background:rgba(240,165,0,.1);color:var(--go);}.pbtn.hi{background:rgba(240,82,82,.1);color:var(--er);}.pbtn.sel{border-color:currentColor;}
-.irow{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:12px;margin-bottom:8px;display:flex;gap:10px;cursor:pointer;}.irow.res{opacity:.4;}
-.itxt{font-size:13px;line-height:1.5;}.irow.res .itxt{text-decoration:line-through;color:var(--mu);}
-.imetarow{display:flex;gap:6px;margin-top:6px;align-items:center;}
-.itime{font-size:10px;color:var(--mu);font-family:'IBM Plex Mono',monospace;}
-/* PHOTOS */
-.phreqbar{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;margin-bottom:10px;}
-.phdesc{background:rgba(79,142,247,.07);border:1px solid rgba(79,142,247,.2);border-radius:8px;padding:10px 12px;font-size:12px;color:#8bb4f7;margin-bottom:10px;}
-.phup{border:2px dashed var(--bd);border-radius:10px;padding:28px 20px;text-align:center;color:var(--mu);cursor:pointer;font-size:13px;margin-bottom:12px;transition:all .15s;}.phup:hover{border-color:var(--ac);color:var(--ac);}
-.phgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;}
-.pthumb{border-radius:8px;overflow:hidden;aspect-ratio:1;position:relative;background:var(--s2);}
-.pthumb img{width:100%;height:100%;object-fit:cover;}
-.ptmeta{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);padding:3px 6px;font-size:9px;color:var(--go);font-family:monospace;}
-.ptdel{position:absolute;top:4px;right:4px;background:rgba(240,82,82,.85);border:none;border-radius:50%;width:20px;height:20px;color:#fff;font-size:11px;cursor:pointer;display:none;align-items:center;justify-content:center;}.pthumb:hover .ptdel{display:flex;}
-/* ADMIN */
-.atb{background:var(--s1);border-bottom:1px solid var(--adm);padding:0 16px;height:52px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
-.att{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:var(--adm);letter-spacing:2px;flex:1;}
-.anatabs{display:flex;background:var(--s1);border-bottom:1px solid var(--bd);flex-shrink:0;overflow-x:auto;}
-.anatab{padding:10px 18px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace;color:var(--mu);border:none;border-bottom:2px solid transparent;background:none;cursor:pointer;white-space:nowrap;}.anatab.on{color:var(--adm);border-bottom-color:var(--adm);}
-.apane{display:none;padding:16px;max-width:700px;margin:0 auto;width:100%;}.apane.on{display:block;}
-.acard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:14px;}
-.acard h3{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--adm);letter-spacing:1px;margin-bottom:14px;}
-.afield{margin-bottom:12px;}
-.asteprow{display:flex;gap:8px;margin-bottom:6px;align-items:flex-start;}.asteprow textarea{flex:1;}
-.adelbtn{background:none;border:1px solid var(--er);color:var(--er);border-radius:6px;width:26px;height:26px;cursor:pointer;font-size:13px;flex-shrink:0;margin-top:2px;}
-.asavebtn{background:var(--adm);color:#0c0e14;border:none;border-radius:8px;padding:9px 20px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;}
-.savedok{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ok);margin-left:10px;display:none;}
-.livecard{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px;}
-.livecard.run{border-color:var(--go);}.livecard.over{border-color:var(--er);}
-.livetop{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.liveav{width:32px;height:32px;border-radius:50%;background:var(--go);color:#0c0e14;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:11px;flex-shrink:0;}
-.livename{font-size:14px;font-weight:600;}.liveasm{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mu);}
-.livetimer{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:700;margin-left:auto;}.livetimer.g{color:var(--ok);}.livetimer.r{color:var(--er);}
-.livebars{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
-.livebar{background:var(--s2);border-radius:6px;padding:7px 9px;}
-.lbarlbl{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--mu);letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
-.lbarval{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;}.lbarval.ok{color:var(--ok);}.lbarval.er{color:var(--er);}.lbarval.wn{color:var(--wn);}
-.minibar{height:3px;background:var(--bd);border-radius:2px;margin-top:4px;}.minibarf{height:100%;background:var(--ok);border-radius:2px;}
-.liveref{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mu);margin-bottom:10px;}
-.ifilter{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
-.iar{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:12px;margin-bottom:8px;}
-.iarhdr{display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;flex-wrap:wrap;}
-.iartxt{font-size:13px;line-height:1.5;margin-bottom:6px;}
-.iarmeta{font-size:11px;color:var(--mu);font-family:'IBM Plex Mono',monospace;}
-.peditrow{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:10px;}
-.pedithdr{display:flex;align-items:center;gap:8px;margin-bottom:10px;}.peditname{font-size:14px;font-weight:600;flex:1;}
-.asmpick{display:flex;flex-wrap:wrap;gap:5px;padding:8px;background:var(--bg);border:1px solid var(--bd);border-radius:7px;min-height:36px;}
-.apick{background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:3px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mu);cursor:pointer;}.apick.on{border-color:var(--go);color:var(--go);background:rgba(240,165,0,.08);}
-.mechrow{background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
-.mechav{width:36px;height:36px;border-radius:50%;background:var(--go);color:#0c0e14;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:12px;flex-shrink:0;}
-.mechinfo{flex:1;}.mechn{font-size:14px;font-weight:600;}.mechpin{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mu);}
-.logrow{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:12px;margin-bottom:8px;}
-.logtit{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;margin-bottom:3px;}
-.logmeta{font-size:12px;color:var(--mu);margin-bottom:8px;}
-.logacts{display:flex;gap:6px;}
-.logbtn{background:transparent;border:1px solid var(--bd);border-radius:6px;color:var(--mu);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:4px 10px;cursor:pointer;}.logbtn:hover{border-color:var(--go);color:var(--go);}.logbtn.ph{border-color:var(--ac);color:var(--ac);}
-/* STATS */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px;}
-.stat-tile{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;text-align:center;}
-.stat-tile-val{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:700;color:var(--go);line-height:1;}
-.stat-tile-val.ok{color:var(--ok);}.stat-tile-val.er{color:var(--er);}.stat-tile-val.ac{color:var(--ac);}
-.stat-tile-lbl{font-size:11px;color:var(--mu);margin-top:4px;}
-.stat-bar-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--s2);}
-.stat-bar-row:last-child{border-bottom:none;}
-.stat-bar-name{font-size:13px;min-width:120px;}
-.stat-bar-wrap{flex:1;background:var(--bd);border-radius:3px;height:6px;overflow:hidden;}
-.stat-bar-fill{height:100%;border-radius:3px;background:var(--go);}
-.stat-bar-val{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mu);min-width:50px;text-align:right;}
-/* ISSUES BADGE */
-.issues-badge{background:var(--er);color:#fff;border-radius:10px;font-size:10px;font-weight:700;padding:1px 6px;font-family:'IBM Plex Mono',monospace;margin-left:4px;display:none;}
-.issues-badge.on{display:inline;}
-/* MILESTONE COMMENT */
-.ms-comment-btn{background:none;border:1px solid var(--bd);border-radius:6px;color:var(--mu);font-size:11px;padding:4px 10px;cursor:pointer;margin-top:8px;font-family:'IBM Plex Mono',monospace;}
-.ms-comment-btn:hover{border-color:var(--ac);color:var(--ac);}
-.ms-comment-inp{width:100%;margin-top:6px;background:var(--bg);border:1px solid var(--bd);border-radius:7px;padding:8px;color:var(--tx);font-size:13px;font-family:inherit;resize:none;outline:none;}
-.ms-comment-inp:focus{border-color:var(--ac);}
-.ms-comment-saved{background:rgba(34,201,147,.08);border:1px solid rgba(34,201,147,.2);border-radius:7px;padding:8px 10px;font-size:12px;color:var(--ok);margin-top:6px;display:flex;align-items:center;gap:8px;}
-.ms-comment-saved-edit{background:none;border:none;color:var(--mu);font-size:11px;cursor:pointer;margin-left:auto;}
-/* ADMIN REF PHOTOS */
-.ms-ref-photos{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;min-height:36px;padding:6px;background:var(--bg);border:1px solid var(--bd);border-radius:7px;}
-.ms-ref-thumb{position:relative;width:64px;height:64px;border-radius:6px;overflow:hidden;flex-shrink:0;}
-.ms-ref-thumb img{width:100%;height:100%;object-fit:cover;}
-.ms-ref-del{position:absolute;top:2px;right:2px;background:rgba(240,82,82,.9);border:none;border-radius:50%;width:18px;height:18px;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.ms-ref-add{width:64px;height:64px;border-radius:6px;border:1.5px dashed var(--bd);background:none;color:var(--mu);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.ms-ref-add:hover{border-color:var(--ac);color:var(--ac);}
-.ms-ref-loading{width:64px;height:64px;border-radius:6px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-/* mechanik - ref photos in milestone viewer */
-.ms-ref-gallery{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
-.ms-ref-gallery-item{border-radius:8px;overflow:hidden;cursor:pointer;border:1px solid var(--bd);}
-.ms-ref-gallery-item img{display:block;width:120px;height:90px;object-fit:cover;}
-/* fullscreen overlay */
-.photo-fs{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1000;align-items:center;justify-content:center;}
-.photo-fs.on{display:flex;}
-.photo-fs img{max-width:95vw;max-height:95vh;object-fit:contain;border-radius:8px;}
-.photo-fs-close{position:absolute;top:16px;right:16px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;}
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
 
-/* MODALS */
-.moverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:999;align-items:center;justify-content:center;padding:20px;}.moverlay.on{display:flex;}
-.mbox{background:var(--s1);border:1px solid var(--bd);border-radius:14px;padding:22px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;}
-.mbox h2{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--adm);letter-spacing:1px;margin-bottom:18px;}
-.macts{display:flex;gap:8px;margin-top:18px;justify-content:flex-end;}
-.fincheck{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd);font-size:13px;}.fincheck:last-child{border-bottom:none;}
-.finico{font-size:16px;width:22px;text-align:center;}.finico.ok{color:var(--ok);}.finico.er{color:var(--er);}
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #222536;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --text: #e8eaf0;
+    --text-muted: #7b8096;
+    --border: #2e3148;
+    --success: #00c896;
+    --error: #ff4757;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 1;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  header .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  header .btn-checklist {
+    margin-left: auto;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 6px 12px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  header .btn-checklist:hover { background: rgba(0,229,255,0.1); }
+
+  header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.5px;
+  }
+
+  header .separator {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+  }
+
+  main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    padding: 24px 16px;
+    max-width: 640px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  /* Search section */
+  .search-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .search-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .search-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,229,255,0.08);
+  }
+
+  .search-input::placeholder {
+    color: var(--text-muted);
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+
+  .btn-camera {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    width: 52px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .btn-camera:hover { background: #00cfee; transform: scale(1.02); }
+  .btn-camera:active { transform: scale(0.97); }
+
+  .btn-camera svg { color: #0f1117; }
+
+  .btn-search {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .btn-search:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Camera view */
+  .camera-container {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .camera-container.active { display: block; }
+
+  .camera-header {
+    padding: 12px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .camera-header span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .btn-close-camera {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+  .btn-close-camera:hover { color: var(--error); }
+
+  #video {
+    width: 100%;
+    display: block;
+    max-height: 280px;
+    object-fit: cover;
+    background: #000;
+  }
+
+  .camera-controls {
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn-capture {
+    flex: 1;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #0f1117;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-capture:hover { background: #00cfee; }
+  .btn-capture:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .ocr-status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  #canvas { display: none; }
+
+  /* Results */
+  .results-container { display: none; }
+  .results-container.active { display: block; }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .results-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--success);
+    text-transform: uppercase;
+  }
+
+  .results-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+  }
+
+  .result-part-number {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    padding-left: 12px;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding-left: 12px;
+  }
+
+  .result-field {
+    background: var(--surface2);
+    border-radius: 6px;
+    padding: 10px 12px;
+  }
+
+  .result-field-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .result-field-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .result-field.highlight .result-field-value {
+    color: var(--accent2);
+  }
+
+  /* No results */
+  .no-results {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .no-results.active { display: block; }
+
+  .no-results-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+  }
+
+  .no-results p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .no-results .searched-term {
+    color: var(--error);
+    letter-spacing: 1px;
+  }
+
+  /* Reset button */
+  .btn-reset {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-reset:hover { border-color: var(--error); color: var(--error); }
+
+  /* Assembly filter */
+  .assembly-select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    color: var(--text);
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 4px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237b8096' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    transition: border-color 0.2s;
+  }
+  .assembly-select:focus { border-color: var(--accent); }
+  .assembly-select option { background: var(--surface2); }
+
+  /* OCR hint */
+  .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  .hint strong { color: var(--accent); }
+
+  /* Loading */
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .loading.active { display: block; }
+
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 10px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
+
+  /* Tesseract progress */
+  #tesseract-status {
+    display: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 8px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.3s;
+    width: 0%;
+  }
+
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    text-align: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+  }
 </style>
-<link rel="manifest" id="pwa-manifest">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Montáž X2">
-<meta name="theme-color" content="#f0a500">
 </head>
 <body>
-<!-- LOGIN -->
-<div id="s-login" class="screen on">
-<div class="lbox"><div class="logo"><div class="logo-ico">⚙</div><div class="logo-t">MONTÁŽ X2</div><div class="logo-s">Výrobní systém</div></div>
-<span class="lbl">Vyberte mechanika</span><div class="ugrid" id="userGrid"></div>
-<div id="pinSec" style="display:none"><span class="lbl">PIN kód</span><div class="pin-r"><input id="pinI" class="pin-i" type="password" maxlength="4" placeholder="••••" autocomplete="off"></div>
-<div class="pin-err" id="pinErr">⚠ Nesprávný PIN</div>
-<button class="btn btn-primary" id="btnLogin" style="width:100%" disabled>Přihlásit se</button></div>
-<div style="text-align:center;margin-top:20px"><button class="adm-btn" id="btnGoAdmin">⚙ Admin panel</button> &nbsp; <button class="adm-btn" id="btnThemeLogin" style="font-size:16px" title="Přepnout režim">🌙</button></div></div></div>
 
-<!-- PROJECT -->
-<div id="s-project" class="screen">
-<div class="tb"><div class="tb-t">Výběr projektu</div><div class="tb-av" id="projAv"></div><span id="projNm" style="font-size:13px;color:var(--mu)"></span><button class="btn btn-ghost" id="btnLogoutProj" style="padding:5px 10px;font-size:12px">⏏ Odhlásit</button></div>
-<div id="projList" style="flex:1;overflow-y:auto;padding:16px;max-width:600px;width:100%;margin:0 auto"></div></div>
+<header>
+  <div class="logo">X2</div>
+  <div class="separator"></div>
+  <h1>Vyhledávač dílů</h1>
+  <a href="checklist.html" class="btn-checklist">&#9745; Kontrola sestavy</a>
+  <a href="admin.html" class="btn-checklist" style="margin-left:8px;border-color:var(--text-muted);color:var(--text-muted)">&#9881; Admin</a>
+</header>
 
-<!-- ASSEMBLY -->
-<div id="s-assembly" class="screen">
-<div class="tb"><button class="btn btn-ghost" id="btnBackProj" style="padding:5px 10px;font-size:12px">← Projekty</button><div class="tb-t" id="asmProj">Sestavy</div><div class="tb-av" id="asmAv"></div><button class="btn btn-ghost" id="btnLogoutAsm" style="padding:5px 10px;font-size:12px">⏏</button></div>
-<div id="asmList" style="flex:1;overflow-y:auto;padding:16px;max-width:600px;width:100%;margin:0 auto"></div></div>
+<main>
+  <!-- Search card -->
+  <div class="search-card">
+    <span class="search-label">Filtr sestavy</span>
+    <select id="assemblyFilter" class="assembly-select"><option value="">Všechny sestavy</option></select>
+    <span class="search-label" style="margin-top:14px;">Číslo dílu</span>
+    <div class="search-row">
+      <input
+        type="text"
+        id="searchInput"
+        class="search-input"
+        placeholder="Zadej nebo nasnímej číslo dílu..."
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      >
+      <button class="btn-camera" id="btnCamera" title="Snímat kamerou">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+      </button>
+      <button class="btn-search" id="btnSearch">HLEDAT</button>
+    </div>
+    <p class="hint">Zadej číslo dílu ručně nebo použij <strong>kameru</strong> pro automatické snímání textu ze štítku.</p>
+  </div>
 
-<!-- WORK -->
-<div id="s-work" class="screen">
-<div class="wtb"><button class="btn btn-ghost" id="btnBackAsm" style="padding:5px 10px;font-size:12px">←</button>
-<div class="wti"><div class="wtid" id="wid"></div><div class="wtn" id="wname"></div></div>
-<div class="tbox"><div><div class="tv g" id="timerVal">00:00</div><div class="tlbl" id="timerLbl">zbývá</div></div><button class="ttog" id="timerTog">▶</button></div>
-<button class="btn btn-ghost" id="btnThemeWork" style="padding:5px 10px;font-size:14px" title="Přepnout režim">🌙</button><button class="btn btn-ghost" id="btnLogoutWork" style="padding:5px 10px;font-size:12px">⏏</button></div>
-<div class="obar" id="obar"></div>
-<div class="pstrip"><div class="pfill" id="progFill" style="width:0%"></div></div>
-<div class="srow">
-<div class="sbox go"><div class="sv" id="stMs">0/0</div><div class="slb">MILNÍKY</div></div>
-<div class="sbox rd"><div class="sv rd" id="stIss">0</div><div class="slb">PROBLÉMY</div></div>
-<div class="sbox bl"><div class="sv bl" id="stPh">0</div><div class="slb">FOTKY</div></div>
-<div class="sbox gn"><div class="sv" id="stPct">0%</div><div class="slb">POSTUP</div></div></div>
-<div class="tabs">
-<button class="tbtn on" data-tab="info">📋 POSTUP</button>
-<button class="tbtn" data-tab="parts" id="tabParts">🔩 DÍLY</button>
-<button class="tbtn" data-tab="issues" id="tabIssues">⚠ PROBLÉMY</button>
-<button class="tbtn" data-tab="photos" id="tabPhotos">📷 FOTKY</button></div>
-<div id="tab-info" class="tpane on">
-<div id="warnSec"></div><div id="docRow" style="display:none;margin-bottom:12px"></div>
-<div class="mono" style="font-size:10px;color:var(--mu);margin-bottom:8px" id="msprgTxt"></div>
-<div class="msprog" id="msDots"></div><div id="msViewer"></div></div>
-<div id="tab-parts" class="tpane">
-<div class="scanrow"><input type="text" id="scanI" class="scani" placeholder="Číslo dílu…" autocomplete="off"><button class="scancam" id="btnCam">📷</button><button class="scanok" id="btnScanOk">OK</button></div>
-<div class="scanst" id="scanSt"></div>
-<div class="scanres" id="scanRes"><div class="srpn" id="srPN"></div><div class="srgrid"><div class="srf"><div class="srfl">Podsestava</div><div class="srfv" id="srPod"></div></div><div class="srf"><div class="srfl">Pozice</div><div class="srfv" id="srPos"></div></div><div class="srf"><div class="srfl">Množství</div><div class="srfv" id="srMnoz"></div></div><div class="srf"><div class="srfl">Typ dílu</div><div class="srfv" id="srTyp"></div></div></div></div>
-<div class="cambox" id="camBox"><div class="camhdr"><span>Namiř na číslo dílu (nad QTY)</span><button class="camx" id="btnCamX">✕</button></div><video id="camVid" autoplay playsinline></video><canvas id="camCnv"></canvas><div class="camctl"><button class="camsnap" id="btnSnap" disabled>SNÍMAT TEXT</button><span id="ocrSt" style="font-size:10px;color:var(--mu);font-family:'IBM Plex Mono',monospace"></span></div></div>
-<div id="partsDB">
-<div class="frow" id="filterRow"></div>
-<div class="pprog"><span>Zkontrolováno</span><span><span class="dn" id="pDone">0</span> / <span id="pTot">0</span></span></div>
-<div class="pbarw"><div class="pbarf" id="pBarF" style="width:0%"></div></div>
-<div style="display:flex;gap:6px;margin-bottom:10px"><button class="markall" id="btnMarkAll">✓ Označit vše jako dodané</button><button class="btn btn-ghost" id="btnResetP" style="padding:4px 10px;font-size:11px">↺ Reset</button></div>
-<div id="partsList"></div><div class="palldone" id="pAllDone">✓ Všechny díly zkontrolovány</div></div>
-<div id="partsNoDb" style="display:none;text-align:center;padding:30px;color:var(--mu)"><div style="font-size:28px;margin-bottom:8px">🔍</div>Sestava <strong id="noDbId"></strong> není v databázi</div></div>
-<div id="tab-issues" class="tpane">
-<button class="itog" id="btnTogIss">+ Nový problém</button>
-<div id="issFormW" style="display:none"><div class="iform"><span class="lbl" style="margin-bottom:8px">Priorita</span><div class="prirow"><button class="pbtn low sel" data-p="low">Nízká</button><button class="pbtn med" data-p="med">Střední</button><button class="pbtn hi" data-p="hi">Vysoká</button></div><span class="lbl" style="margin-bottom:6px">Popis</span><textarea id="issTxt" class="inp" placeholder="Popište problém…"></textarea><button class="btn btn-primary" id="btnAddIss" style="width:100%;margin-top:10px" disabled>Uložit problém</button></div></div>
-<div id="issList"></div><div class="empty" id="issEmpty"><div class="empty-ico">✓</div>Žádné problémy</div></div>
-<div id="tab-photos" class="tpane">
-<div class="phreqbar" id="phReqBar" style="display:none"><span id="phReqTxt"></span><span id="phReqSt"></span></div>
-<div class="phdesc" id="phDesc" style="display:none"></div>
-<input id="phInput" type="file" accept="image/*" multiple style="display:none">
-<div class="phup" id="phUp"><div style="font-size:28px;margin-bottom:8px">📷</div><div>Klikněte pro nahrání fotek</div><div style="font-size:11px;margin-top:4px;color:var(--mu)">JPG · PNG · HEIC</div></div>
-<div class="phgrid" id="phGrid"></div><div class="empty" id="phEmpty"><div class="empty-ico">📷</div>Zatím žádné fotky</div></div>
-<div class="fbar"><button class="fbtn off" id="btnFinish">✓ UKONČIT MONTÁŽ</button><div class="fhint" id="fhint"></div></div></div>
-
-<!-- ADMIN -->
-<div id="s-admin" class="screen">
-<div class="atb"><div class="att">ADMIN</div><button class="btn btn-ghost" id="btnAdmOut" style="padding:5px 12px;font-size:12px">← Odhlásit</button></div>
-<div class="anatabs">
-<button class="anatab on" data-ap="aLive">📡 Přehled</button>
-<button class="anatab" data-ap="aProj">📁 Projekty</button>
-<button class="anatab" data-ap="aAsm">📋 Sestavy</button>
-<button class="anatab" data-ap="aMech">👤 Mechanici</button>
-<button class="anatab" data-ap="aIss">⚠ Problémy<span class="issues-badge" id="issuesBadge"></span></button>
-<button class="anatab" data-ap="aStats">📊 Statistiky</button>
-<button class="anatab" data-ap="aLog">📦 Záznamy</button></div>
-<div style="flex:1;overflow-y:auto">
-<div id="aLive" class="apane on"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="liveref" id="liveRef" style="margin-bottom:0"></div><button class="btn btn-ghost" id="btnSyncNow" style="padding:4px 12px;font-size:11px;margin-left:auto">🔄 Obnovit data</button></div><div id="liveBoard"></div><div class="empty" id="liveEmpty"><div class="empty-ico">📡</div>Žádná probíhající montáž</div></div>
-<div id="aProj" class="apane"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:16px;font-weight:600">Projekty</span><button class="btn btn-ok" id="btnNewProj" style="padding:7px 14px;font-size:12px">+ Nový projekt</button></div><div id="projAdmList"></div><div class="empty" id="projAdmEmpty"><div class="empty-ico">📁</div>Žádné projekty</div></div>
-<div id="aAsm" class="apane">
-<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-  <div style="flex:1;min-width:200px"><label class="lbl">Vyberte sestavu</label><select id="asmSel" class="inp"><option value="">— Vyberte —</option></select></div>
-  <button class="btn btn-ok" id="btnNewAsm" style="padding:7px 14px;font-size:12px;white-space:nowrap">+ Nová sestava</button>
-</div>
-<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
-  <button class="btn btn-ghost" id="btnExportCfg" style="padding:7px 14px;font-size:12px">⬇ Export zálohy (JSON)</button>
-  <label class="btn btn-ghost" style="padding:7px 14px;font-size:12px;cursor:pointer">⬆ Import zálohy<input type="file" id="importCfgFile" accept=".json" style="display:none"></label>
-  <button class="btn btn-ok" id="btnExportApp" style="padding:7px 14px;font-size:12px">🌐 Exportovat aplikaci pro GitHub</button>
-  <span id="importStatus" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ok);display:none;align-self:center"></span>
-</div>
-<div id="asmEditArea" style="display:none"></div></div>
-<div id="aMech" class="apane"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="font-size:16px;font-weight:600">Mechanici</span><button class="btn btn-ok" id="btnNewMech" style="padding:7px 14px;font-size:12px">+ Přidat</button></div><div id="mechList"></div></div>
-<div id="aIss" class="apane">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-    <span style="font-size:15px;font-weight:600">Hlášené problémy</span>
-    <div style="display:flex;gap:6px">
-      <button class="btn btn-ghost" id="btnClearResolvedIss" style="padding:6px 12px;font-size:12px">🗑 Smazat vyřešené</button>
-      <button class="btn btn-danger" id="btnClearAllIss" style="padding:6px 12px;font-size:12px">🗑 Smazat vše</button>
+  <!-- Camera view -->
+  <div class="camera-container" id="cameraContainer">
+    <div class="camera-header">
+      <span>📷 Kamera — namiř na štítek</span>
+      <button class="btn-close-camera" id="btnCloseCamera">✕</button>
+    </div>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas"></canvas>
+    <div class="camera-controls">
+      <button class="btn-capture" id="btnCapture">Snímat text</button>
+      <span class="ocr-status" id="ocrStatus"></span>
+    </div>
+    <div id="tesseract-status">
+      <span id="tesseractMsg">Načítám OCR engine...</span>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     </div>
   </div>
-  <div class="ifilter"><button class="fbtn2 on" data-f="all">Vše</button><button class="fbtn2" data-f="open">Otevřené</button><button class="fbtn2" data-f="res">Vyřešené</button><button class="fbtn2" data-f="hi">Vysoká</button><select id="issAsmF" class="inp" style="max-width:140px;padding:4px 8px;font-size:11px"><option value="">Všechny sestavy</option></select></div>
-  <div id="admIssList"></div>
-  <div class="empty" id="admIssEmpty"><div class="empty-ico">✓</div>Žádné problémy</div>
-</div>
-<div id="aStats" class="apane">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-    <span style="font-size:15px;font-weight:600">Statistiky</span>
-    <button class="btn btn-danger" id="btnResetStats" style="padding:6px 14px;font-size:12px">↺ Vynulovat statistiky</button>
+
+  <!-- Loading -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Vyhledávám...</p>
   </div>
-  <div id="statsContent"></div>
-</div>
-<div id="aLog" class="apane">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-    <span style="font-size:15px;font-weight:600">Záznamy dokončených montáží</span>
-    <button class="btn btn-danger" id="btnClearLog" style="padding:6px 14px;font-size:12px">🗑 Smazat všechny záznamy</button>
-  </div>
-  <div id="logList"></div>
-  <div class="empty" id="logEmpty"><div class="empty-ico">📦</div>Žádné záznamy</div>
-</div>
-</div></div>
 
-<!-- MODALS -->
-<div class="moverlay" id="mAdmLogin"><div class="mbox"><h2>⚙ ADMIN PŘIHLÁŠENÍ</h2><div class="afield"><label class="lbl">Heslo</label><input type="password" id="admPw" class="inp" placeholder="Heslo…"></div><div style="color:var(--er);font-size:12px;display:none;margin-top:6px;font-family:'IBM Plex Mono',monospace" id="admPwErr">⚠ Nesprávné heslo</div><div class="macts"><button class="btn btn-ghost" id="btnAdmCancel">Zrušit</button><button class="btn btn-adm" id="btnAdmLogin">Přihlásit →</button></div></div></div>
-
-<div class="moverlay" id="mFinish"><div class="mbox" style="max-width:400px"><h2>✓ UKONČENÍ MONTÁŽE</h2><div id="finList"></div><button class="btn btn-ok" id="btnFinConf" style="width:100%;margin-top:16px;padding:12px;font-size:13px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px">POTVRDIT DOKONČENÍ</button><button class="btn btn-ghost" id="btnFinCancel" style="width:100%;margin-top:8px;padding:10px;font-size:12px">Zrušit</button></div></div>
-
-<div class="moverlay" id="mProjEdit"><div class="mbox" style="max-width:560px"><h2 id="projEditT">📁 PROJEKT</h2><div class="afield"><label class="lbl">Název</label><input type="text" id="peN" class="inp"></div><div class="afield"><label class="lbl">Popis</label><textarea id="peD" class="inp" rows="2"></textarea></div><div class="afield"><label class="lbl">Sestavy v projektu</label><div class="asmpick" id="pePicker"></div><div style="font-size:10px;color:var(--mu);font-family:'IBM Plex Mono',monospace;margin-top:4px" id="pePickCnt"></div></div><div class="macts"><button class="btn btn-ghost" id="btnPECancel">Zrušit</button><button class="btn btn-adm" id="btnPESave">Uložit projekt</button></div></div></div>
-
-<div class="moverlay" id="mMechEdit"><div class="mbox" style="max-width:400px"><h2 id="mechEditT">👤 MECHANIK</h2><div class="afield"><label class="lbl">Jméno</label><input type="text" id="meN" class="inp"></div><div class="afield"><label class="lbl">PIN (4 číslice)</label><input type="text" id="meP" class="inp" maxlength="4" placeholder="1234"></div><div class="macts"><button class="btn btn-ghost" id="btnMECancel">Zrušit</button><button class="btn btn-adm" id="btnMESave">Uložit</button></div></div></div>
-<div class="photo-fs" id="photoFs"><button class="photo-fs-close" id="photoFsClose">✕</button><img id="photoFsImg" src=""></div>
-<div class="moverlay" id="modalNewAsm">
-  <div class="modal-box" style="max-width:420px">
-    <h2>📋 NOVÁ SESTAVA</h2>
-    <div class="afield"><label class="lbl">ID sestavy (unikátní kód)</label><input type="text" id="newAsmId" class="inp" placeholder="např. 21P999" style="font-family:'IBM Plex Mono',monospace"></div>
-    <div class="afield"><label class="lbl">Název sestavy</label><input type="text" id="newAsmName" class="inp" placeholder="Název sestavy…"></div>
-    <div class="afield"><label class="lbl">Odhadovaný čas (min)</label><input type="number" id="newAsmTime" class="inp" style="max-width:120px" value="120" min="1"></div>
-    <div style="font-size:12px;color:var(--mu);margin-bottom:12px">Sestava bez DB dílů — mechanik uvidí záložku Díly prázdnou.</div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="btnNewAsmCancel">Zrušit</button>
-      <button class="btn btn-adm" id="btnNewAsmSave">Vytvořit sestavu</button>
+  <!-- Results -->
+  <div class="results-container" id="resultsContainer">
+    <div class="results-header">
+      <span class="results-label">Výsledky</span>
+      <span class="results-count" id="resultsCount">0 nalezeno</span>
+      <button class="btn-reset" id="btnReset" title="Zpět na úvod">✕ Zpět</button>
     </div>
+    <div id="resultsList"></div>
   </div>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- No results -->
+  <div class="no-results" id="noResults">
+    <div class="no-results-icon">⊘</div>
+    <p>Díl <span class="searched-term" id="searchedTerm"></span> nebyl nalezen v databázi.</p>
+    <button class="btn-reset" id="btnReset2" style="margin-top:16px;">✕ Zpět</button>
+  </div>
+</main>
+
+<footer>SESTAVY X2 — DATABÁZE DÍLŮ</footer>
+
 <script>
-"use strict";
-// ════════════════════════════════════════
-// SUPABASE CONFIG & SYNC LAYER
-// ════════════════════════════════════════
-const SB_URL='https://sjaptutrezivmkknjmnm.supabase.co/rest/v1';
-const SB_KEY='sb_publishable_bhADUycIoS9wbyNxxjYsZQ_F_c5D8mU';
-const SB_HEADERS={
-  'apikey': SB_KEY,
-  'Authorization': 'Bearer '+SB_KEY,
-  'Content-Type': 'application/json',
-  'Prefer': 'resolution=merge-duplicates'
-};
-
-function sbGet(table, query){
-  return fetch(SB_URL+'/'+table+(query||''), {headers: SB_HEADERS})
-    .then(function(r){ if(!r.ok) throw new Error('sbGet '+table+' failed: '+r.status); return r.json(); })
-    .catch(function(e){ console.error('sbGet error:', e); return []; });
-}
-function sbUpsert(table, rows){
-  return fetch(SB_URL+'/'+table, {
-    method:'POST',
-    headers: SB_HEADERS,
-    body: JSON.stringify(Array.isArray(rows)?rows:[rows])
-  }).catch(function(e){ console.error('sbUpsert error:', e); });
-}
-function sbDelete(table, column, value){
-  return fetch(SB_URL+'/'+table+'?'+column+'=eq.'+encodeURIComponent(value), {
-    method:'DELETE', headers: SB_HEADERS
-  }).catch(function(e){ console.error('sbDelete error:', e); });
-}
-
-// Konverze mezi JS camelCase a DB snake_case pro jednotlivé tabulky
-function mechToDb(m){ return {id:m.id, name:m.name, pin:m.pin, av:m.av}; }
-function mechFromDb(r){ return {id:r.id, name:r.name, pin:r.pin, av:r.av}; }
-
-function projToDb(p){ return {id:p.id, name:p.name, description:p.desc||'', assembly_ids:p.assemblyIds||[], closed:!!p.closed}; }
-function projFromDb(r){ return {id:r.id, name:r.name, desc:r.description||'', assemblyIds:r.assembly_ids||[], closed:!!r.closed, createdAt:r.created_at?new Date(r.created_at).toLocaleDateString('cs-CZ'):''}; }
-
-function asmCfgToDb(id,c){ return {id:id, name:c.name, estimated_min:c.estimatedMin, milestones:c.milestones||[], warnings:c.warnings||[], min_photos:c.minPhotos||0, photo_desc:c.photoDesc||'', doc_url:c.docUrl||'', doc_note:c.docNote||''}; }
-function asmCfgFromDb(r){ return {id:r.id, name:r.name, estimatedMin:r.estimated_min, milestones:r.milestones||[], warnings:r.warnings||[], minPhotos:r.min_photos||0, photoDesc:r.photo_desc||'', docUrl:r.doc_url||'', docNote:r.doc_note||''}; }
-
-function sessToDb(s){ return {asm_id:(s.projId?s.projId+'::':'')+s.asmId, mech_id:s.mechId, mech_name:s.mechName, mech_av:s.mechAv, started_at:s.startedAt, elapsed_sec:s.elapsedSec||0, is_running:!!s.isRunning, start_time:s.startTime||null, checked_parts:s.checkedParts||{}, milestones_done:s.milestonesDone||[], current_ms:s.currentMs||0, ms_photo_baseline:s.msPhotoBaseline||{}, ms_comments:s.msComments||{}, issues:s.issues||[], photo_count:s.photoCount||0, workers:s.workers||[]}; }
-function sessFromDb(r){ var hasProj=r.asm_id.indexOf('::')>-1;var projId=hasProj?r.asm_id.split('::')[0]:null;var asmId=hasProj?r.asm_id.split('::')[1]:r.asm_id; return {asmId:asmId, projId:projId, mechId:r.mech_id, mechName:r.mech_name, mechAv:r.mech_av, startedAt:r.started_at, elapsedSec:r.elapsed_sec||0, isRunning:!!r.is_running, startTime:r.start_time, checkedParts:r.checked_parts||{}, milestonesDone:r.milestones_done||[], currentMs:r.current_ms||0, msPhotoBaseline:r.ms_photo_baseline||{}, msComments:r.ms_comments||{}, issues:r.issues||[], photoCount:r.photo_count||0, workers:r.workers||[]}; }
-
-function issueToDb(i){ return {id:i.id, asm_id:i.asmId, mech_name:i.mechName, text:i.text, priority:i.priority||'low', resolved:!!i.resolved, time:i.time, created_at:i.createdAt, saved_at:i.savedAt}; }
-function issueFromDb(r){ return {id:r.id, asmId:r.asm_id, mechName:r.mech_name, text:r.text, priority:r.priority||'low', resolved:!!r.resolved, time:r.time, createdAt:r.created_at, savedAt:r.saved_at}; }
-
-function compToDb(r){ return {id:r.id, asm_id:r.asmId, asm_name:r.asmName, mechanic:r.mechanic, mech_av:r.mechAv, workers:r.workers||[], duration:r.duration, duration_sec:r.durationSec, completed_at:r.completedAt, issues:r.issues||[], photo_count:r.photoCount||0, photo_data:r.photoData||[]}; }
-function compFromDb(r){ return {id:r.id, asmId:r.asm_id, asmName:r.asm_name, mechanic:r.mechanic, mechAv:r.mech_av, workers:r.workers||[], duration:r.duration, durationSec:r.duration_sec, completedAt:r.completed_at, issues:r.issues||[], photoCount:r.photo_count||0, photoData:r.photo_data||[]}; }
-
-// Stáhni VŠE ze Supabase do localStorage (volá se při startu)
-async function syncFromSupabase(){
-  try{
-    var mechs=await sbGet('mechanics');
-    if(mechs&&mechs.length)localStorage.setItem('mechs',JSON.stringify(mechs.map(mechFromDb)));
-
-    var projs=await sbGet('projects');
-    if(projs)localStorage.setItem('projects',JSON.stringify(projs.map(projFromDb)));
-
-    var asmCfgs=await sbGet('assembly_configs');
-    if(asmCfgs){asmCfgs.forEach(function(r){localStorage.setItem('asm_'+r.id,JSON.stringify(asmCfgFromDb(r)));});}
-
-    var sessions=await sbGet('sessions');
-    if(sessions){
-      // smaž staré lokální sessions a nahraj aktuální z DB
-      Object.keys(localStorage).filter(function(k){return k.indexOf('sess_')===0;}).forEach(function(k){localStorage.removeItem(k);});
-      sessions.forEach(function(r){var s=sessFromDb(r);var key=s.projId?s.projId+'::'+s.asmId:s.asmId;localStorage.setItem('sess_'+key,JSON.stringify(s));});
-    }
-
-    var issues=await sbGet('issues');
-    if(issues)localStorage.setItem('gi',JSON.stringify(issues.map(issueFromDb)));
-
-    var completed=await sbGet('completed','?order=created_at.desc');
-    if(completed)localStorage.setItem('completed',JSON.stringify(completed.map(compFromDb)));
-  }catch(e){
-    console.error('syncFromSupabase failed:', e);
-  }
-}
-
-var __ORIGINAL_HTML__ = null; // set by export
+// ============================================================
+// DATABÁZE DÍLŮ (z Excel souboru)
+// ============================================================
 const DB = [
   {Cislodilu:"0P11925",Sestava:"21P355",Podsestava:"1",Pozice:"1",Mnozstvi:"1"},
   {Cislodilu:"2513102067",Sestava:"21P355",Podsestava:"1",Pozice:"2",Mnozstvi:"3"},
@@ -3862,1581 +3985,236 @@ const DB = [
   {Cislodilu:"0X7936",Sestava:"21X133",Podsestava:"1",Pozice:"46",Mnozstvi:"1"},
   {Cislodilu:"2520502002",Sestava:"21X133",Podsestava:"1",Pozice:"47",Mnozstvi:"6"}
 ];
-// LocalStorage DB override
-(function(){try{var r=localStorage.getItem('x2_db');if(r){var l=JSON.parse(r);if(l&&l.length){DB.length=0;l.forEach(function(d){DB.push(d);});}}}catch(e){}})();
 
-const VISION_KEY='AIzaSyD2X8U8cdc_GoKc_VqzlcxCFo209kBNGT0';
-const VISION_URL='https://vision.googleapis.com/v1/images:annotate?key='+VISION_KEY;
-const ADMIN_PASS='admin2025';
-
-// ═══ STORAGE ═══
-function ls(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-
-// ═══ DATA ═══
-function defMechs(){return[{id:'m1',name:'Jan Novák',pin:'1234',av:'JN'},{id:'m2',name:'Petr Svoboda',pin:'5678',av:'PS'},{id:'m3',name:'Martin Dvořák',pin:'9012',av:'MD'},{id:'m4',name:'Tomáš Kratochvíl',pin:'3456',av:'TK'},{id:'m5',name:'Karel Horáček',pin:'7890',av:'KH'},{id:'m6',name:'Pavel Marek',pin:'2345',av:'PM'},{id:'m7',name:'Jiří Vlček',pin:'6789',av:'JV'},{id:'m8',name:'Ondřej Beneš',pin:'0123',av:'OB'}];}
-function getMechs(){return ls('mechs',defMechs());}
-function saveMechs(m){lsSet('mechs',m);sbUpsert('mechanics',m.map(mechToDb));}
-function getProjects(){return ls('projects',[]);}
-function saveProjects(p){lsSet('projects',p);sbUpsert('projects',p.map(projToDb));}
-function getAsmCfg(id){var d={id:id,name:'Sestava '+id,estimatedMin:120,milestones:[],warnings:[],minPhotos:0,photoDesc:'',docUrl:'',docNote:''};return Object.assign({},d,ls('asm_'+id,{}));}
-function saveAsmCfg(id,c){lsSet('asm_'+id,c);sbUpsert('assembly_configs',asmCfgToDb(id,c));}
-function allAsmIds(){return[...new Set(DB.map(function(d){return d.Sestava;}))].sort();}
-function getUniq(id){var u={};DB.filter(function(d){return d.Sestava===id;}).forEach(function(p){if(!u[p.Cislodilu])u[p.Cislodilu]=[];u[p.Cislodilu].push(p);});return u;}
-
-// ═══ SESSIONS ═══
-function makeSessKey(projId,asmId){return (projId||'')+'::'+asmId;}
-function sessKeyToAsmId(key){if(!key)return key;var i=key.indexOf('::');return i>-1?key.slice(i+2):key;}
-function loadSess(id){
-  // id může být buď sessKey (proj_asm) nebo jen asmId (zpětná kompatibilita)
-  var v=ls('sess_'+id,null);
-  return v;
-}
-function saveSess(id,s){lsSet('sess_'+id,s);sbUpsert('sessions',sessToDb(s));}
-function delSess(id){localStorage.removeItem('sess_'+id);sbDelete('sessions','asm_id',id);}
-function allSessions(){
-  // Načti všechny sess_ klíče z localStorage
-  var result=[];
-  Object.keys(localStorage).forEach(function(k){
-    if(k.indexOf('sess_')===0){
-      try{var s=JSON.parse(localStorage.getItem(k));if(s&&s.asmId)result.push(s);}catch(e){}
-    }
-  });
-  return result;
-}
-function getSessEl(s){var e=s.elapsedSec||0;if(s.isRunning&&s.startTime)e+=Math.floor((Date.now()-s.startTime)/1000);return e;}
-function getSessRem(s){return getAsmCfg(s.asmId).estimatedMin*60-getSessEl(s);}
-
-// ═══ MILESTONES ═══
-function getMsDone(id){var s=loadSess(id);return new Set(s&&s.milestonesDone?s.milestonesDone:[]);}
-function setMsDone(id,idx,done){var s=loadSess(id);if(!s)return;var st=new Set(s.milestonesDone||[]);if(done)st.add(idx);else st.delete(idx);s.milestonesDone=[...st];saveSess(id,s);}
-function getCurMs(id){var s=loadSess(id);return s?(s.currentMs||0):0;}
-function setCurMs(id,i){var s=loadSess(id);if(!s)return;s.currentMs=i;saveSess(id,s);}
-function allMsDone(id){var cfg=getAsmCfg(id.indexOf('::')>-1?id.split('::')[1]:id);var ms=cfg.milestones||[];if(!ms.length)return true;var done=getMsDone(id);return ms.every(function(_,i){return done.has(i);});}
-function allMsDone(id){var cfg=getAsmCfg(id);var ms=cfg.milestones||[];if(!ms.length)return true;var done=getMsDone(id);return ms.every(function(_,i){return done.has(i);});}
-
-// ═══ STATE ═══
-var curUser=null,curProjId=null,curAsmId=null,curSessKey=null;
-var timerIv=null,camStream=null,issuePri='low';
-var wPhotos=[],wIssues=[];
-
-// ═══ UTILS ═══
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fmtCD(rem){var abs=Math.abs(Math.round(rem));var mm=String(Math.floor(abs/60)).padStart(2,'0');var ss=String(abs%60).padStart(2,'0');if(rem>0)return '\u2212'+mm+':'+ss;return(rem===0?'':'+')+mm+':'+ss;}
-function fmtEl(sec){sec=Math.abs(Math.round(sec));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');}
-function showScr(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');});document.getElementById(id).classList.add('on');}
-function initials(n){return n.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();}
-function uid(){return '_'+Math.random().toString(36).slice(2)+Date.now().toString(36);}
-function saveGI(issue,asmId,mechName){var a=ls('gi',[]);var full=Object.assign({},issue,{asmId:asmId,mechName:mechName,savedAt:new Date().toLocaleString('cs-CZ')});a.push(full);lsSet('gi',a);updateIssuesBadge();sbUpsert('issues',issueToDb(full));}
-function loadGI(){return ls('gi',[]);}
-function syncGI(upd){var a=loadGI();var i=a.findIndex(function(x){return x.id===upd.id;});if(i>-1){a[i].resolved=upd.resolved;lsSet('gi',a);sbUpsert('issues',issueToDb(a[i]));}}
-
-// ═══ LOGIN ═══
-function buildLoginGrid(){
-  var g=document.getElementById('userGrid');g.innerHTML='';
-  getMechs().forEach(function(u){
-    var btn=document.createElement('button');btn.className='ubtn';
-    btn.innerHTML='<div class="uav">'+esc(u.av)+'</div><div class="uname">'+esc(u.name)+'</div>';
-    btn.addEventListener('click',function(){
-      document.querySelectorAll('.ubtn').forEach(function(b){b.classList.remove('sel');});
-      btn.classList.add('sel');curUser=u;
-      document.getElementById('pinSec').style.display='block';
-      document.getElementById('pinI').value='';
-      document.getElementById('pinErr').style.display='none';
-      document.getElementById('pinI').classList.remove('err');
-      document.getElementById('btnLogin').disabled=true;
-      document.getElementById('pinI').focus();
-    });
-    g.appendChild(btn);
-  });
-}
-document.getElementById('pinI').addEventListener('input',function(){
-  var v=this.value.replace(/\D/g,'');this.value=v;
-  document.getElementById('pinErr').style.display='none';this.classList.remove('err');
-  document.getElementById('btnLogin').disabled=v.length!==4;
-});
-document.getElementById('pinI').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('btnLogin').click();});
-document.getElementById('btnLogin').addEventListener('click',function(){
-  if(!curUser)return;
-  if(curUser.pin===document.getElementById('pinI').value){
-    document.getElementById('projAv').textContent=curUser.av;
-    document.getElementById('projNm').textContent=curUser.name;
-    document.getElementById('asmAv').textContent=curUser.av;
-    showScr('s-project');
-    document.getElementById('projList').innerHTML='<div class="empty"><div class="empty-ico">⏳</div>Načítám data…</div>';
-    syncFromSupabase().then(function(){buildProjScr();});
-  } else {
-    document.getElementById('pinErr').style.display='block';
-    document.getElementById('pinI').classList.add('err');
-    document.getElementById('pinI').value='';document.getElementById('btnLogin').disabled=true;
-  }
-});
-document.getElementById('btnGoAdmin').addEventListener('click',function(){
-  document.getElementById('admPw').value='';document.getElementById('admPwErr').style.display='none';
-  document.getElementById('mAdmLogin').classList.add('on');
-  setTimeout(function(){document.getElementById('admPw').focus();},100);
-});
-document.getElementById('btnAdmCancel').addEventListener('click',function(){document.getElementById('mAdmLogin').classList.remove('on');});
-document.getElementById('admPw').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('btnAdmLogin').click();});
-document.getElementById('btnAdmLogin').addEventListener('click',function(){
-  if(document.getElementById('admPw').value===ADMIN_PASS){requestNotifPermission();
-    document.getElementById('mAdmLogin').classList.remove('on');
-    showScr('s-admin');
-    syncFromSupabase().then(function(){buildAdmin();startLive();});
-  } else {document.getElementById('admPwErr').style.display='block';document.getElementById('admPw').value='';}
-});
-document.getElementById('btnAdmOut').addEventListener('click',function(){stopLive();doLogout();});
-function doLogout(){
-  if(curAsmId){var s=loadSess(curSessKey);if(s&&s.isRunning){s.elapsedSec=getSessEl(s);s.isRunning=false;s.startTime=null;saveSess(curSessKey,s);}}
-  clearInterval(timerIv);timerIv=null;stopCam();
-  curUser=null;curProjId=null;curAsmId=null;curSessKey=null;wPhotos=[];wIssues=[];
-  document.querySelectorAll('.ubtn').forEach(function(b){b.classList.remove('sel');});
-  document.getElementById('pinSec').style.display='none';document.getElementById('pinI').value='';document.getElementById('btnLogin').disabled=true;
-  buildLoginGrid();showScr('s-login');
-}
-['btnLogoutProj','btnLogoutAsm','btnLogoutWork'].forEach(function(id){document.getElementById(id).addEventListener('click',doLogout);});
-
-// ═══ PROJECT SCREEN ═══
-function buildProjScr(){
-  var list=document.getElementById('projList');list.innerHTML='';
-  var projects=getProjects();
-  if(!projects.length){list.innerHTML='<div class="empty"><div class="empty-ico">📁</div>Žádné projekty. Admin musí vytvořit projekt.</div>';return;}
-  projects.forEach(function(proj){
-    var closed=proj.closed;var ids=proj.assemblyIds||[];
-    var active=allSessions().filter(function(s){return ids.includes(s.asmId);});
-    var card=document.createElement('div');card.className='pcard'+(closed?' closed':'');
-    card.innerHTML='<div class="pcard-n">'+esc(proj.name)+(closed?' <span class="tag tag-mu">UZAVŘENO</span>':'')+'</div>'+
-      (proj.desc?'<div class="pcard-d">'+esc(proj.desc)+'</div>':'')+
-      '<div class="pcard-m"><span class="tag tag-mu">📋 '+ids.length+' sestav</span>'+(active.length?'<span class="tag tag-ok">▶ '+active.length+' aktivní</span>':'')+'</div>';
-    if(!closed)card.addEventListener('click',function(){curProjId=proj.id;document.getElementById('asmProj').textContent=proj.name;buildAsmScr();showScr('s-assembly');});
-    list.appendChild(card);
-  });
-}
-document.getElementById('btnBackProj').addEventListener('click',function(){buildProjScr();showScr('s-project');});
-
-// ═══ ASSEMBLY SCREEN ═══
-function buildAsmScr(){
-  var list=document.getElementById('asmList');list.innerHTML='';
-  var proj=getProjects().find(function(p){return p.id===curProjId;});
-  if(!proj||!proj.assemblyIds||!proj.assemblyIds.length){list.innerHTML='<div class="empty"><div class="empty-ico">🔩</div>Projekt neobsahuje sestavy</div>';return;}
-  var ids=proj.assemblyIds.filter(function(id){return!isAsmHidden(id);});
-  var sessions=allSessions();
-  var myAct=sessions.filter(function(s){return ids.includes(s.asmId)&&s.projId===curProjId&&s.mechId===curUser.id;});
-  var othAct=sessions.filter(function(s){return ids.includes(s.asmId)&&s.projId===curProjId&&s.mechId!==curUser.id;});
-  var actIds=new Set(sessions.filter(function(s){return ids.includes(s.asmId)&&s.projId===curProjId;}).map(function(s){return s.asmId;}));
-  var inact=ids.filter(function(id){return!actIds.has(id);});
-  if(myAct.length||othAct.length){var h1=document.createElement('div');h1.className='asec';h1.textContent='Rozpracované';list.appendChild(h1);myAct.concat(othAct).forEach(function(sess){buildAsmCard(list,sess.asmId,sess);});}
-  if(inact.length){var h2=document.createElement('div');h2.className='asec';h2.style.marginTop='16px';h2.textContent='Zahájit montáž';list.appendChild(h2);inact.sort().forEach(function(id){buildAsmCard(list,id,null);});}
-}
-function buildAsmCard(list,id,sess){
-  var cfg=getAsmCfg(id);var db=DB.some(function(d){return d.Sestava===id;});
-  var isOth=sess&&sess.mechId!==curUser.id;var rem=sess?getSessRem(sess):null;
-  var sessKey=makeSessKey(curProjId,id);
-  var card=document.createElement('div');card.className='acard'+(sess?isOth?' othact':' myact':'');
-  var workers=sess?sess.workers||[]:[];
-  card.innerHTML='<div class="acard-id">'+esc(id)+'</div><div class="acard-n">'+esc(cfg.name)+'</div>'+
-    '<div class="acard-m"><span class="tag tag-mu">⏱ '+cfg.estimatedMin+' min</span>'+
-    (db?'<span class="tag tag-mu">🔩 '+Object.keys(getUniq(id)).length+' dílů</span>':'<span class="tag tag-wn">bez DB</span>')+
-    (cfg.minPhotos?'<span class="tag tag-mu">📷 '+cfg.minPhotos+'</span>':'')+
-    (sess&&!isOth?'<span class="tag tag-ok">▶ vaše</span>':isOth?'<span class="tag tag-wn">'+esc(sess.mechName)+'</span>':'')+
-    (sess?'<span class="stimer '+(rem>0?'g':'r')+'">'+fmtCD(rem)+'</span>':'')+
-    '</div>'+
-    (workers.length>1?'<div style="font-size:11px;color:var(--mu);margin-top:5px;font-family:monospace">👥 '+workers.map(function(w){return w.name;}).join(', ')+'</div>':'');
-  card.addEventListener('click',function(){openWork(id);});
-  list.appendChild(card);
-}
-document.getElementById('btnBackAsm').addEventListener('click',function(){clearInterval(timerIv);timerIv=null;stopCam();wPhotos=[];wIssues=[];buildAsmScr();showScr('s-assembly');});
-
-// ═══ WORK SCREEN ═══
-function openWork(id){
-  curAsmId=id;wPhotos=[];
-  curSessKey=makeSessKey(curProjId,id);
-  var cfg=getAsmCfg(id);
-  var sess=loadSess(curSessKey);
-  if(!sess){sess={asmId:id,projId:curProjId,mechId:curUser.id,mechName:curUser.name,mechAv:curUser.av,startedAt:new Date().toLocaleString('cs-CZ'),elapsedSec:0,isRunning:false,startTime:null,checkedParts:{},milestonesDone:[],currentMs:0,issues:[],photoCount:0,workers:[]};saveSess(curSessKey,sess);}
-  // přidej aktuálního mechanika do seznamu workers pokud tam ještě není
-  if(!sess.workers)sess.workers=[];
-  var alreadyIn=sess.workers.some(function(w){return w.id===curUser.id;});
-  if(!alreadyIn){sess.workers.push({id:curUser.id,name:curUser.name,av:curUser.av,joinedAt:new Date().toLocaleString('cs-CZ')});saveSess(id,sess);}
-  wIssues=sess.issues||[];
-  document.getElementById('wid').textContent=id+' · '+curUser.name;
-  document.getElementById('wname').textContent=cfg.name;
-  var ob=document.getElementById('obar');
-  var workers=sess.workers||[];
-  if(!navigator.onLine){ob.className='obar on';ob.style.color='var(--er)';ob.textContent='⚠ Offline — data se uloží po obnovení připojení';}
-  if(workers.length>1){
-    ob.className='obar on';
-    var names=workers.map(function(w){return w.name;}).join(', ');
-    ob.textContent='👥 Pracovali na sestavě: '+names;
-  } else if(sess.mechId!==curUser.id){
-    ob.className='obar on';ob.textContent='⚠ Sestavu zahájil: '+sess.mechName;
-  } else ob.className='obar';
-  clearInterval(timerIv);updateTimer();
-  if(sess.isRunning){timerIv=setInterval(function(){updateTimer();updateStats();checkTimerNotif();},1000);document.getElementById('timerTog').textContent='⏸';}
-  else document.getElementById('timerTog').textContent='▶';
-  buildInfoTab(cfg);buildPartsTab(id);buildIssuesUI();buildPhotosUI(cfg);
-  switchTab('info');updateStats();updateFinishBtn();
-  showScr('s-work');
-}
-document.getElementById('timerTog').addEventListener('click',function(){
-  if(!curAsmId)return;var s=loadSess(curSessKey);if(!s)return;
-  if(s.isRunning){s.elapsedSec=getSessEl(s);s.isRunning=false;s.startTime=null;clearInterval(timerIv);document.getElementById('timerTog').textContent='▶';}
-  else{s.isRunning=true;s.startTime=Date.now();timerIv=setInterval(function(){updateTimer();updateStats();checkTimerNotif();},1000);document.getElementById('timerTog').textContent='⏸';}
-  saveSess(curSessKey,s);
-});
-function updateTimer(){
-  if(!curSessKey)return;var s=loadSess(curSessKey);if(!s)return;
-  var rem=getSessRem(s);var tv=document.getElementById('timerVal');
-  tv.textContent=fmtCD(rem);tv.className='tv '+(rem>0?'g':'r');
-  document.getElementById('timerLbl').textContent=rem>0?'zbývá':'přesčas';
-}
-document.querySelectorAll('.tbtn').forEach(function(btn){btn.addEventListener('click',function(){switchTab(btn.dataset.tab);});});
-function switchTab(name){
-  document.querySelectorAll('.tbtn').forEach(function(b){b.classList.toggle('on',b.dataset.tab===name);});
-  document.querySelectorAll('.tpane').forEach(function(p){p.classList.toggle('on',p.id==='tab-'+name);});
-  if(name==='info'&&curAsmId)renderMsViewer(curSessKey,getAsmCfg(curAsmId));
-}
-
-// ─── INFO TAB ───
-function buildInfoTab(cfg){
-  var ws=document.getElementById('warnSec');ws.innerHTML='';
-  (cfg.warnings||[]).forEach(function(w){var d=document.createElement('div');d.style.cssText='background:rgba(240,82,82,.07);border:1px solid rgba(240,82,82,.25);border-radius:8px;padding:9px 12px;margin-bottom:8px;display:flex;gap:8px;font-size:12px;color:#f09090;';d.innerHTML='<span>⚠</span><span>'+esc(w)+'</span>';ws.appendChild(d);});
-  var dr=document.getElementById('docRow');
-  if(cfg.docUrl){dr.style.display='block';dr.innerHTML='<div style="background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:10px;font-size:13px">📄 <span style="flex:1">'+esc(cfg.docNote||'Dokumentace')+'</span><a href="'+esc(cfg.docUrl)+'" target="_blank" style="color:var(--ac);font-family:monospace;font-size:11px;text-decoration:none;border:1px solid var(--ac);border-radius:5px;padding:3px 10px">Otevřít →</a></div>';}
-  else dr.style.display='none';
-  renderMsViewer(curSessKey,cfg);
-}
-
-// ─── MILESTONE VIEWER ───
-function showCommentForm(body,id,idx,existing){
-  var wrap=document.createElement('div');
-  var ta=document.createElement('textarea');ta.className='ms-comment-inp';ta.rows=2;ta.placeholder='Komentář k tomuto milníku…';ta.value=existing;
-  wrap.appendChild(ta);
-  var saveBtn=document.createElement('button');saveBtn.className='btn btn-primary';saveBtn.style.cssText='margin-top:6px;padding:6px 14px;font-size:12px';saveBtn.textContent='Uložit komentář';
-  saveBtn.addEventListener('click',function(){
-    var val=ta.value.trim();
-    var s=loadSess(id);if(!s)return;
-    if(!s.msComments)s.msComments={};
-    if(val)s.msComments[idx]=val;else delete s.msComments[idx];
-    saveSess(id,s);
-    renderMsViewer(id,getAsmCfg(curAsmId));
-  });
-  wrap.appendChild(saveBtn);
-  body.appendChild(wrap);
-  ta.focus();
-}
-function renderMsViewer(id,cfg){
-  var asmId=id.indexOf('::')>-1?id.split('::')[1]:id; // extrahuj asmId ze sessKey
-  var ms=cfg.milestones||[];
-  var pt=document.getElementById('msprgTxt');var dots=document.getElementById('msDots');var viewer=document.getElementById('msViewer');
-  if(!ms.length){pt.textContent='';dots.innerHTML='';viewer.innerHTML='<div style="text-align:center;padding:30px;color:var(--mu)">Žádné milníky — nastaví admin.</div>';return;}
-  var done=getMsDone(id);var cur=Math.min(getCurMs(id),ms.length-1);
-  pt.textContent='Milník '+(cur+1)+' / '+ms.length+' · splněno '+done.size+'/'+ms.length;
-  dots.innerHTML='';
-  ms.forEach(function(_,i){
-    var dot=document.createElement('div');dot.className='msdot'+(done.has(i)?' done':i===cur?' cur':'');
-    dot.title='Milník '+(i+1)+': '+ms[i].title;
-    (function(idx){dot.addEventListener('click',function(){setCurMs(id,idx);renderMsViewer(id,cfg);});})(i);
-    dots.appendChild(dot);
-  });
-  var ps=document.createElement('span');ps.className='msprg';ps.textContent=ms.length?Math.round(done.size/ms.length*100)+'%':'0%';dots.appendChild(ps);
-  var m=ms[cur];var isDone=done.has(cur);var canAct=cur===0||done.has(cur-1);
-  // baseline = počet fotek když mechanik vstoupil do tohoto milníku
-  var s0=loadSess(id);var baselines=(s0&&s0.msPhotoBaseline)||{};
-  var baseline=baselines[cur]!==undefined?baselines[cur]:0;
-  var photoMet=!m.requirePhoto||(wPhotos.length>baseline);
-  var canConf=canAct&&photoMet&&!isDone;
-  viewer.innerHTML='';
-  if(isDone){
-    var db=document.createElement('div');db.className='msdonebar';
-    db.innerHTML='<span>✓</span><span>Milník potvrzen</span><button style="margin-left:auto;background:none;border:1px solid var(--bd);border-radius:6px;color:var(--mu);font-size:11px;padding:3px 10px;cursor:pointer" id="btnMsUndo">Zrušit</button>';
-    viewer.appendChild(db);
-    document.getElementById('btnMsUndo').addEventListener('click',function(){setMsDone(id,cur,false);renderMsViewer(id,cfg);updateStats();updateFinishBtn();});
-  }
-  var card=document.createElement('div');card.className='mscard';
-  card.innerHTML='<div class="mshdr"><span class="msnum">'+(cur+1)+' / '+ms.length+'</span><span class="mstit">'+esc(m.title||'Milník '+(cur+1))+'</span><span class="tag '+(isDone?'tag-ok':canAct?'tag-go':'tag-mu')+'">'+(isDone?'✓ HOTOVO':canAct?'AKTIVNÍ':'ČEKÁ')+'</span></div>';
-  var body=document.createElement('div');body.className='msbody';
-  if(m.desc&&!(m.steps&&m.steps.length)){var dp=document.createElement('div');dp.className='msdesc';dp.textContent=m.desc;body.appendChild(dp);}
-  if(m.steps&&m.steps.length){var sl=document.createElement('div');sl.className='mssteps';m.steps.forEach(function(st,i){var row=document.createElement('div');row.className='msstep';row.innerHTML='<div class="mssn">'+(i+1)+'</div><div class="msst">'+esc(st)+'</div>';sl.appendChild(row);});body.appendChild(sl);}
-  if(m.refPhotos&&m.refPhotos.length){
-    var gal=document.createElement('div');gal.className='ms-ref-gallery';
-    m.refPhotos.forEach(function(url){
-      var item=document.createElement('div');item.className='ms-ref-gallery-item';
-      item.innerHTML='<img src="'+esc(url)+'" loading="lazy">';
-      item.addEventListener('click',function(){showPhotoFs(url);});
-      gal.appendChild(item);
-    });
-    body.appendChild(gal);
-  }
-  if(m.requirePhoto){var pr=document.createElement('div');pr.className='msphreq'+(photoMet?' met':'');var newCount=wPhotos.length-baseline;pr.innerHTML=(photoMet?'✓ ':'📷 ')+(photoMet?'Fotografie nahrána ('+newCount+' nových)':'Nahrajte alespoň 1 novou fotografii pro tento milník');body.appendChild(pr);}
-  // zobraz uložený komentář
-  var s0b=loadSess(id);var savedComment=(s0b&&s0b.msComments&&s0b.msComments[cur])||'';
-  if(savedComment){
-    var sc=document.createElement('div');sc.className='ms-comment-saved';
-    sc.innerHTML='💬 <span style="flex:1">'+esc(savedComment)+'</span><button class="ms-comment-saved-edit" title="Upravit">✏</button>';
-    sc.querySelector('.ms-comment-saved-edit').addEventListener('click',function(){sc.remove();showCommentForm(body,id,cur,savedComment);});
-    body.appendChild(sc);
-  } else if(isDone){
-    var addCmt=document.createElement('button');addCmt.className='ms-comment-btn';addCmt.textContent='+ Přidat komentář k milníku';
-    addCmt.addEventListener('click',function(){addCmt.remove();showCommentForm(body,id,cur,'');});
-    body.appendChild(addCmt);
-  }
-  // Hlasová poznámka - zobrazit u každého milníku kde je SpeechRecognition dostupný
-  if(('SpeechRecognition' in window||'webkitSpeechRecognition' in window)){
-    var voiceRow=document.createElement('div');voiceRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:8px 10px;background:var(--s2);border-radius:8px;';
-    var micB=document.createElement('button');micB.className='btn btn-ghost';micB.style.cssText='padding:5px 12px;font-size:16px;';micB.textContent='🎤';micB.title='Hlasová poznámka k milníku';
-    var micSt=document.createElement('span');micSt.style.cssText='font-size:12px;color:var(--mu);';micSt.textContent='Diktovat poznámku';
-    var existNote=(s0b&&s0b.msComments&&s0b.msComments[cur])||'';
-    if(existNote)micSt.textContent='Poznámka: '+existNote.slice(0,40)+(existNote.length>40?'…':'');
-    micB.addEventListener('click',function(){
-      var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-      var sr=new SR();sr.lang='cs-CZ';sr.interimResults=false;
-      micB.textContent='🔴';micB.disabled=true;micSt.textContent='Poslouchám…';
-      sr.onresult=function(e){
-        var text=e.results[0][0].transcript;
-        var s3=loadSess(id);if(!s3)return;
-        if(!s3.msComments)s3.msComments={};
-        var prev=s3.msComments[cur]||'';
-        s3.msComments[cur]=(prev?prev+' ':'')+text;
-        saveSess(id,s3);
-        micB.textContent='🎤';micB.disabled=false;
-        micSt.textContent='Uloženo: '+s3.msComments[cur].slice(0,40)+(s3.msComments[cur].length>40?'…':'');
-        renderMsViewer(id,getAsmCfg(curAsmId));
-      };
-      sr.onerror=function(){micB.textContent='🎤';micB.disabled=false;micSt.textContent='Chyba mikrofonu';};
-      sr.onend=function(){micB.textContent='🎤';micB.disabled=false;};
-      sr.start();
-    });
-    voiceRow.appendChild(micB);voiceRow.appendChild(micSt);body.appendChild(voiceRow);
-  }
-  if(!isDone&&canAct){var cb=document.createElement('button');cb.className='msconf';cb.textContent=cur<ms.length-1?'Potvrdit a pokračovat →':'✓ Potvrdit poslední milník';cb.disabled=!canConf;
-    (function(c){cb.addEventListener('click',function(){
-      setMsDone(id,c,true);
-      var s2=loadSess(id);if(s2){if(!s2.msPhotoBaseline)s2.msPhotoBaseline={};s2.msPhotoBaseline[c+1]=wPhotos.length;saveSess(id,s2);}
-      if(c<ms.length-1)setCurMs(id,c+1);
-      renderMsViewer(id,cfg);updateStats();updateFinishBtn();
-    });})(cur);
-    body.appendChild(cb);}
-  card.appendChild(body);viewer.appendChild(card);
-  var nav=document.createElement('div');nav.className='msnav';
-  var prev=document.createElement('button');prev.className='msnbtn';prev.textContent='← Předchozí';prev.disabled=cur===0;
-  (function(c){prev.addEventListener('click',function(){setCurMs(id,c-1);renderMsViewer(id,cfg);});})(cur);
-  var next=document.createElement('button');next.className='msnbtn';next.textContent='Přeskočit →';next.disabled=cur>=ms.length-1;
-  (function(c){next.addEventListener('click',function(){setCurMs(id,c+1);renderMsViewer(id,cfg);});})(cur);
-  nav.appendChild(prev);nav.appendChild(next);viewer.appendChild(nav);
-}
-
-// ─── PARTS TAB ───
-var activeTypF='all';
-function buildPartsTab(id){
-  var db=DB.some(function(d){return d.Sestava===id;});
-  document.getElementById('partsDB').style.display=db?'block':'none';
-  document.getElementById('partsNoDb').style.display=db?'none':'block';
-  document.getElementById('noDbId').textContent=id;
-  document.getElementById('scanI').value='';document.getElementById('scanSt').textContent='';document.getElementById('scanRes').classList.remove('on');
-  activeTypF='all';
-  if(db){buildFilterRow2(id);renderParts(id);updatePartsProgress(id);}
-}
-var TYPS=['nakupovaný díl','vyráběný díl','spojovací materiál'];
-var TYPL={'nakupovaný díl':'Nakupovaný','vyráběný díl':'Vyráběný','spojovací materiál':'Spoj. mat.'};
-function buildFilterRow2(id){
-  var row=document.getElementById('filterRow');row.innerHTML='';
-  var ab=document.createElement('button');ab.className='fbtn2 on';ab.textContent='Vše';ab.dataset.t='all';
-  ab.addEventListener('click',function(){activeTypF='all';updateFBtns('all');renderParts(id);});row.appendChild(ab);
-  TYPS.forEach(function(t){
-    var b=document.createElement('button');b.className='fbtn2';b.textContent=TYPL[t]||t;b.dataset.t=t;
-    b.addEventListener('click',function(){activeTypF=t;updateFBtns(t);renderParts(id);});row.appendChild(b);
-  });
-}
-function updateFBtns(active){document.querySelectorAll('#filterRow .fbtn2').forEach(function(b){b.classList.toggle('on',b.dataset.t===active);});}
-function renderParts(id){
-  var s=loadSess(id);var ck=s?s.checkedParts||{}:{};
-  var uniq=getUniq(id);var list=document.getElementById('partsList');list.innerHTML='';
-  var byPod={};
-  Object.entries(uniq).forEach(function(entry){
-    var cd=entry[0];var es=entry[1];
-    var typ=(es[0].TypDilu||'').toLowerCase().trim();
-    if(activeTypF!=='all'&&typ!==activeTypF)return;
-    es.forEach(function(e){if(!byPod[e.Podsestava])byPod[e.Podsestava]=[];if(!byPod[e.Podsestava].find(function(x){return x.Cislodilu===cd;}))byPod[e.Podsestava].push(e);});
-  });
-  Object.keys(byPod).sort(function(a,b){return Number(a)-Number(b);}).forEach(function(pod){
-    var hdr=document.createElement('div');hdr.className='pshdr';hdr.textContent='Podsestava '+pod;list.appendChild(hdr);
-    byPod[pod].forEach(function(p){
-      var ck2=!!ck[p.Cislodilu];
-      var row=document.createElement('div');row.className='prow'+(ck2?' ck':'');row.dataset.c=p.Cislodilu;
-      row.innerHTML='<div class="pchk">'+(ck2?'✓':'')+'</div><div class="pinfo"><div class="pnum">'+esc(p.Cislodilu)+'</div><div class="pmeta">Poz. '+esc(p.Pozice)+' · '+esc(p.Mnozstvi)+' ks'+(p.TypDilu?' · <span class="tag tag-ac" style="font-size:9px">'+esc(p.TypDilu)+'</span>':'')+'</div></div>';
-      row.querySelector('.pchk').addEventListener('click',function(){togglePart(id,p.Cislodilu);});
-      list.appendChild(row);
-    });
-  });
-  updatePartsProgress(id);
-}
-function togglePart(id,cd){
-  var s=loadSess(id);if(!s)return;var ck=s.checkedParts||{};
-  if(ck[cd])delete ck[cd];else ck[cd]=true;
-  s.checkedParts=ck;saveSess(id,s);
-  document.querySelectorAll('.prow[data-c="'+cd+'"]').forEach(function(el){var ok=!!ck[cd];el.classList.toggle('ck',ok);el.querySelector('.pchk').textContent=ok?'✓':'';});
-  updatePartsProgress(id);updateStats();updateFinishBtn();
-}
-function updatePartsProgress(id){
-  var s=loadSess(id);var ck=s?s.checkedParts||{}:{};
-  var uniq=getUniq(id);var tot=Object.keys(uniq).length;var done=Object.keys(ck).length;
-  document.getElementById('pDone').textContent=done;document.getElementById('pTot').textContent=tot;
-  document.getElementById('pBarF').style.width=tot>0?Math.round(done/tot*100)+'%':'0%';
-  document.getElementById('pAllDone').classList.toggle('on',done>=tot&&tot>0);
-}
-document.getElementById('btnMarkAll').addEventListener('click',function(){
-  if(!curAsmId)return;var s=loadSess(curSessKey);if(!s)return;
-  var uniq=getUniq(curAsmId);var ck=s.checkedParts||{};
-  Object.keys(uniq).forEach(function(cd){var typ=(uniq[cd][0].TypDilu||'').toLowerCase().trim();if(activeTypF==='all'||typ===activeTypF)ck[cd]=true;});
-  s.checkedParts=ck;saveSess(curSessKey,s);renderParts(curAsmId);updateStats();updateFinishBtn();
-});
-document.getElementById('btnResetP').addEventListener('click',function(){
-  if(!curAsmId||!confirm('Resetovat kontrolu dílů?'))return;
-  var s=loadSess(curSessKey);if(!s)return;s.checkedParts={};saveSess(curSessKey,s);renderParts(curAsmId);updateStats();updateFinishBtn();
-});
-function processScan(v){
-  var q=v.trim().toUpperCase().replace(/\s+/g,'');if(!q)return;
-  document.getElementById('scanI').value='';
-  var s=loadSess(curSessKey);if(!s)return;var uniq=getUniq(curAsmId);
-  if(uniq[q]){
-    var es=uniq[q];
-    document.getElementById('srPN').textContent=q;
-    document.getElementById('srPod').textContent=es.map(function(e){return e.Podsestava;}).join(', ');
-    document.getElementById('srPos').textContent=es.map(function(e){return e.Pozice;}).join(', ');
-    document.getElementById('srMnoz').textContent=es[0].Mnozstvi+' ks';
-    document.getElementById('srTyp').textContent=es[0].TypDilu||'—';
-    document.getElementById('scanRes').classList.add('on');
-    var ck2=s.checkedParts||{};
-    if(ck2[q])showScanSt(q+' — již odškrtnuto','ok');
-    else{togglePart(curAsmId,q);showScanSt('✓ '+q+' odškrtnuto','ok');}
-  } else {document.getElementById('scanRes').classList.remove('on');showScanSt(q+' — není v sestavě '+curAsmId,'er');}
-}
-function showScanSt(msg,cls){var el=document.getElementById('scanSt');el.textContent=msg;el.className='scanst '+(cls||'');setTimeout(function(){el.textContent='';el.className='scanst';},3000);}
-document.getElementById('btnScanOk').addEventListener('click',function(){processScan(document.getElementById('scanI').value);});
-document.getElementById('scanI').addEventListener('keydown',function(e){if(e.key==='Enter')processScan(this.value);});
-document.getElementById('btnCam').addEventListener('click',async function(){
-  document.getElementById('camBox').classList.add('on');document.getElementById('btnSnap').disabled=true;document.getElementById('ocrSt').textContent='';
-  try{camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});document.getElementById('camVid').srcObject=camStream;await document.getElementById('camVid').play();document.getElementById('btnSnap').disabled=false;document.getElementById('ocrSt').textContent='Připraveno';}
-  catch(e){document.getElementById('ocrSt').textContent='Kamera nedostupná';}
-});
-document.getElementById('btnCamX').addEventListener('click',stopCam);
-function stopCam(){if(camStream){camStream.getTracks().forEach(function(t){t.stop();});camStream=null;}document.getElementById('camBox').classList.remove('on');}
-document.getElementById('btnSnap').addEventListener('click',async function(){
-  document.getElementById('btnSnap').disabled=true;document.getElementById('ocrSt').textContent='Zpracovávám…';
-  var vid=document.getElementById('camVid');var cnv=document.getElementById('camCnv');
-  cnv.width=vid.videoWidth;cnv.height=vid.videoHeight;cnv.getContext('2d').drawImage(vid,0,0);
-  var b64=cnv.toDataURL('image/jpeg',0.9).split(',')[1];
-  try{
-    var r=await fetch(VISION_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requests:[{image:{content:b64},features:[{type:'TEXT_DETECTION',maxResults:1}]}]})});
-    var data=await r.json();var anns=data.responses?.[0]?.textAnnotations||[];var found=null;
-    if(anns.length>1){var qa=anns.find(function(a){return a.description.toUpperCase()==='QTY';});if(qa){var qt=qa.boundingPoly.vertices.reduce(function(m,v){return Math.min(m,v.y||0);},Infinity);var qr=qa.boundingPoly.vertices.reduce(function(m,v){return Math.max(m,v.x||0);},-Infinity);var by=-1,bc=null;for(var a of anns.slice(1)){var ab=a.boundingPoly.vertices.reduce(function(m,v){return Math.max(m,v.y||0);},-Infinity);var al=a.boundingPoly.vertices.reduce(function(m,v){return Math.min(m,v.x||0);},Infinity);var d2=a.description.replace(/\s+/g,'').toUpperCase().replace(/^O(?=[A-Z0-9])/,'0');if(ab<qt&&/^\d/.test(d2)&&d2.length>=4&&al<qr&&ab>by){by=ab;bc=d2;}}if(bc)found=bc;}}
-    if(!found){var raw=(anns[0]?.description||'').toUpperCase().replace(/^O(?=[A-Z0-9])/gm,'0');var uniq2=getUniq(curAsmId);for(var c of Object.keys(uniq2)){if(raw.includes(c)){found=c;break;}}}
-    if(found){document.getElementById('ocrSt').textContent='✓ '+found;stopCam();processScan(found);}
-    else{document.getElementById('ocrSt').textContent='Nenalezeno';document.getElementById('btnSnap').disabled=false;}
-  }catch(e){document.getElementById('ocrSt').textContent='Chyba';document.getElementById('btnSnap').disabled=false;}
-});
-
-// ─── ISSUES TAB ───
-function buildIssuesUI(){
-  wIssues=loadSess(curSessKey)?.issues||[];renderIssues();
-  document.getElementById('issTxt').value='';document.getElementById('btnAddIss').disabled=true;
-  document.getElementById('issFormW').style.display='none';document.getElementById('btnTogIss').textContent='+ Nový problém';
-  issuePri='low';document.querySelectorAll('.pbtn').forEach(function(b){b.classList.toggle('sel',b.dataset.p==='low');});
-}
-document.getElementById('btnTogIss').addEventListener('click',function(){
-  var f=document.getElementById('issFormW');var open=f.style.display==='block';
-  f.style.display=open?'none':'block';this.textContent=open?'+ Nový problém':'Zrušit';
-});
-document.querySelectorAll('.pbtn').forEach(function(b){b.addEventListener('click',function(){issuePri=b.dataset.p;document.querySelectorAll('.pbtn').forEach(function(x){x.classList.toggle('sel',x===b);});});});
-document.getElementById('issTxt').addEventListener('input',function(){document.getElementById('btnAddIss').disabled=!this.value.trim();});
-document.getElementById('btnAddIss').addEventListener('click',function(){
-  var txt=document.getElementById('issTxt').value.trim();if(!txt)return;
-  var s=loadSess(curSessKey);if(!s)return;
-  var issue={id:uid(),text:txt,priority:issuePri,time:fmtEl(getSessEl(s)),resolved:false,createdAt:new Date().toLocaleString('cs-CZ')};
-  wIssues.unshift(issue);s.issues=wIssues;saveSess(curSessKey,s);
-  saveGI(issue,curAsmId,curUser.name);
-  if(issue.priority==='hi')notifHighPriority(issue.text,curAsmId);
-  document.getElementById('issTxt').value='';document.getElementById('btnAddIss').disabled=true;
-  document.getElementById('issFormW').style.display='none';document.getElementById('btnTogIss').textContent='+ Nový problém';
-  renderIssues();updateStats();updateFinishBtn();
-});
-function renderIssues(){
-  var list=document.getElementById('issList');list.innerHTML='';
-  document.getElementById('issEmpty').style.display=wIssues.length?'none':'block';
-  var PLB={low:'Nízká',med:'Střední',hi:'Vysoká'};var PTAG={low:'tag-ok',med:'tag-go',hi:'tag-er'};
-  wIssues.forEach(function(iss){
-    var row=document.createElement('div');row.className='irow'+(iss.resolved?' res':'');
-    row.innerHTML='<div style="padding-top:2px"><div class="pchk" style="width:18px;height:18px">'+(iss.resolved?'✓':'')+'</div></div>'+
-      '<div style="flex:1"><div class="itxt">'+esc(iss.text)+'</div>'+
-      '<div class="imetarow"><span class="tag '+(PTAG[iss.priority||'low'])+'">'+PLB[iss.priority||'low']+'</span><span class="itime">@ '+iss.time+'</span></div></div>';
-    row.addEventListener('click',function(){iss.resolved=!iss.resolved;var s=loadSess(curSessKey);if(s){s.issues=wIssues;saveSess(curSessKey,s);}syncGI(iss);renderIssues();updateStats();updateFinishBtn();});
-    list.appendChild(row);
-  });
-}
-
-// ─── PHOTOS TAB ───
-function buildPhotosUI(cfg){
-  wPhotos=[];renderPhotos();
-  var pd=document.getElementById('phDesc');
-  if(cfg.photoDesc){pd.style.display='block';pd.innerHTML='📷 <strong style="color:var(--ac)">Co fotografovat:</strong> '+esc(cfg.photoDesc);}else pd.style.display='none';
-  updatePhBar(cfg);
-}
-function updatePhBar(cfg){
-  if(!cfg)cfg=getAsmCfg(curAsmId);
-  var bar=document.getElementById('phReqBar');
-  if(cfg.minPhotos>0){
-    bar.style.display='flex';document.getElementById('phReqTxt').textContent='Nahráno: '+wPhotos.length+' / min. '+cfg.minPhotos;
-    var ok2=wPhotos.length>=cfg.minPhotos;
-    document.getElementById('phReqSt').className='tag '+(ok2?'tag-ok':'tag-wn');
-    document.getElementById('phReqSt').textContent=ok2?'✓ Splněno':'⚠ Chybí '+(cfg.minPhotos-wPhotos.length);
-  } else bar.style.display='none';
-}
-document.getElementById('phUp').addEventListener('click',function(){document.getElementById('phInput').click();});
-const CLOUDINARY_CLOUD='dmuvpu0fz';
-const CLOUDINARY_PRESET='JCEEfactory';
-const CLOUDINARY_URL='https://api.cloudinary.com/v1_1/'+CLOUDINARY_CLOUD+'/image/upload';
-
-async function uploadToCloudinary(file,asmId,mechName,timeStr){
-  var formData=new FormData();
-  formData.append('file',file);
-  formData.append('upload_preset',CLOUDINARY_PRESET);
-  formData.append('folder','montaz/'+asmId);
-  formData.append('context','mech='+mechName+'|time='+timeStr+'|asm='+asmId);
-  var resp=await fetch(CLOUDINARY_URL,{method:'POST',body:formData});
-  if(!resp.ok)throw new Error('Upload selhal: '+resp.status);
-  var data=await resp.json();
-  return data.secure_url;
-}
-
-document.getElementById('phInput').addEventListener('change',function(){
-  var files=Array.from(this.files);this.value='';
-  if(!files.length)return;
-  // zobraz loading indikátor
-  var upArea=document.getElementById('phUp');
-  var origHtml=upArea.innerHTML;
-  upArea.innerHTML='<div style="font-size:24px;margin-bottom:8px">⏳</div><div>Nahrávám '+files.length+' fotku…</div>';
-  upArea.style.pointerEvents='none';
-  var s=loadSess(curSessKey);
-  var timeStr=fmtEl(getSessEl(s||{}));
-  var mechName=curUser?curUser.name:'';
-  var done=0;
-  files.forEach(function(file){
-    uploadToCloudinary(file,curAsmId,mechName,timeStr).then(function(url){
-      var s2=loadSess(curSessKey);
-      wPhotos.unshift({id:uid(),src:url,name:file.name,time:timeStr,cloudinary:true});
-      if(s2){s2.photoCount=wPhotos.length;saveSess(curSessKey,s2);}
-      done++;
-      if(done===files.length){
-        upArea.innerHTML=origHtml;
-        upArea.style.pointerEvents='';
-      }
-      renderPhotos();updateStats();updateFinishBtn();
-      if(curAsmId)renderMsViewer(curSessKey,getAsmCfg(curAsmId));
-    }).catch(function(err){
-      done++;
-      if(done===files.length){upArea.innerHTML=origHtml;upArea.style.pointerEvents='';}
-      alert('Chyba při nahrávání fotky: '+err.message);
-    });
-  });
-});
-function renderPhotos(){
-  var grid=document.getElementById('phGrid');grid.innerHTML='';
-  document.getElementById('phEmpty').style.display=wPhotos.length?'none':'block';
-  wPhotos.forEach(function(p,i){
-    var div=document.createElement('div');div.className='pthumb';
-    div.innerHTML='<img src="'+p.src+'" alt="foto"><div class="ptmeta">'+esc(p.time)+'</div><button class="ptdel" data-i="'+i+'">✕</button>';
-    div.querySelector('.ptdel').addEventListener('click',function(e){
-      e.stopPropagation();wPhotos.splice(Number(e.target.dataset.i),1);
-      var s=loadSess(curSessKey);if(s){s.photoCount=wPhotos.length;saveSess(curSessKey,s);}
-      renderPhotos();updateStats();updateFinishBtn();
-      if(curAsmId)renderMsViewer(curSessKey,getAsmCfg(curAsmId));
-    });
-    grid.appendChild(div);
-  });
-  updatePhBar();
-}
-
-// ─── STATS ───
-function updateStats(){
-  if(!curAsmId)return;var s=loadSess(curSessKey);if(!s)return;
-  var cfg=getAsmCfg(curAsmId);var ms=cfg.milestones||[];var msDone=getMsDone(curSessKey).size;
-  var unres=wIssues.filter(function(i){return!i.resolved;}).length;var photos=wPhotos.length;
-  var pct=ms.length?Math.round(msDone/ms.length*100):0;
-  document.getElementById('stMs').textContent=msDone+'/'+ms.length;
-  document.getElementById('stIss').textContent=unres;document.getElementById('stIss').className='sv'+(unres>0?' rd':'');
-  document.getElementById('stPh').textContent=photos;
-  document.getElementById('stPct').textContent=pct+'%';
-  document.getElementById('progFill').style.width=pct+'%';
-  document.getElementById('tabIssues').textContent='⚠ '+(unres?'('+unres+')':'PROBLÉMY');
-  document.getElementById('tabPhotos').textContent='📷 '+(photos?'('+photos+')':'FOTKY');
-}
-
-// ─── FINISH ───
-function checkFinishReqs(){
-  if(!curAsmId)return{can:false,checks:[]};
-  var cfg=getAsmCfg(curAsmId);var ms=cfg.milestones||[];var msOk=allMsDone(curSessKey);
-  var unres=wIssues.filter(function(i){return!i.resolved;}).length;var photos=wPhotos.length;
-  var checks=[
-    {label:'Všechny milníky splněny ('+getMsDone(curSessKey).size+'/'+ms.length+')',ok:msOk,skip:ms.length===0},
-    {label:'Žádné nevyřešené problémy ('+unres+' otevřených)',ok:unres===0},
-    {label:'Fotodokumentace ('+photos+'/'+cfg.minPhotos+')',ok:photos>=cfg.minPhotos,skip:cfg.minPhotos===0}
-  ];
-  return{can:checks.every(function(c){return c.ok||c.skip;}),checks:checks};
-}
-function updateFinishBtn(){
-  if(!curAsmId)return;
-  var res=checkFinishReqs();var can=res.can;var checks=res.checks;
-  var btn=document.getElementById('btnFinish');
-  btn.className='fbtn '+(can?'on':'off');
-  var pend=checks.filter(function(c){return!c.ok&&!c.skip;});
-  document.getElementById('fhint').textContent=can?'Všechny podmínky splněny':pend.map(function(c){return'⚠ '+c.label;}).join(' · ');
-}
-document.getElementById('btnFinish').addEventListener('click',function(){
-  if(!curAsmId)return;
-  var res=checkFinishReqs();var can=res.can;var checks=res.checks;
-  var cl=document.getElementById('finList');cl.innerHTML='';
-  checks.forEach(function(ch){if(ch.skip)return;var d=document.createElement('div');d.className='fincheck';d.innerHTML='<span class="finico '+(ch.ok?'ok':'er')+'">'+(ch.ok?'✓':'✗')+'</span><span>'+esc(ch.label)+'</span>';cl.appendChild(d);});
-  document.getElementById('btnFinConf').style.display=can?'block':'none';
-  document.getElementById('mFinish').classList.add('on');
-});
-document.getElementById('btnFinCancel').addEventListener('click',function(){document.getElementById('mFinish').classList.remove('on');});
-document.getElementById('btnFinConf').addEventListener('click',function(){
-  document.getElementById('mFinish').classList.remove('on');
-  doFinish();
-});
-function doFinish(){
-  var id=curAsmId;if(!id)return;
-  var s=loadSess(id);if(!s)return;
-  var cfg=getAsmCfg(id);
-  s.elapsedSec=getSessEl(s);s.isRunning=false;s.startTime=null;
-  var photoData=wPhotos.map(function(p){return{src:p.src,name:p.name,time:p.time};});
-  var rec={id:uid(),asmId:id,asmName:cfg.name,mechanic:curUser.name,mechAv:curUser.av,
-    workers:s.workers||[],
-    duration:fmtEl(s.elapsedSec),durationSec:s.elapsedSec,completedAt:new Date().toLocaleString('cs-CZ'),
-    issues:wIssues.map(function(i){return Object.assign({},i);}),photoCount:photoData.length,photoData:photoData};
-  var completed=ls('completed',[]);completed.unshift(rec);lsSet('completed',completed);sbUpsert('completed',compToDb(rec));
-  delSess(id);clearInterval(timerIv);timerIv=null;stopCam();
-  curAsmId=null;wPhotos=[];wIssues=[];
-  if(photoData.length>0){
-    var win=window.open('','_blank');
-    if(win){
-      var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fotky '+esc(id)+'</title><style>body{font-family:sans-serif;background:#111;color:#eee;padding:24px}h1{color:#f0a500;margin-bottom:4px}p{color:#888;font-size:13px;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}.item{background:#222;border-radius:8px;overflow:hidden}.item img{width:100%;display:block}.meta{padding:8px;font-size:11px;color:#888}.dl{display:inline-block;margin-top:4px;padding:4px 10px;background:#00e5ff;color:#000;border-radius:4px;text-decoration:none;font-size:11px}</style></head><body>';
-      html+='<h1>📷 '+esc(id)+' — '+esc(cfg.name)+'</h1>';
-      html+='<p>'+esc(rec.mechanic)+' | '+esc(rec.completedAt)+' | '+esc(rec.duration)+'</p><div class="grid">';
-      photoData.forEach(function(p,i){html+='<div class="item"><img src="'+p.src+'"><div class="meta">Foto '+(i+1)+' @ '+esc(p.time)+'<br><a class="dl" href="'+p.src+'" download="foto_'+esc(id)+'_'+(i+1)+'.jpg">⬇ Stáhnout</a></div></div>';});
-      html+='</div></body></html>';
-      win.document.write(html);win.document.close();
-    }
-  }
-  buildAsmScr();showScr('s-assembly');
-  setTimeout(function(){alert('Montáž '+id+' dokončena a uložena.');},200);
-}
-
-// ═══ ADMIN PANEL ═══
-// ─── FULLSCREEN PHOTO ───
-function showPhotoFs(url){
-  document.getElementById('photoFsImg').src=url;
-  document.getElementById('photoFs').classList.add('on');
-}
-document.getElementById('photoFsClose').addEventListener('click',function(){document.getElementById('photoFs').classList.remove('on');});
-document.getElementById('photoFs').addEventListener('click',function(e){if(e.target===this)this.classList.remove('on');});
-
-// ─── NOVÁ SESTAVA ───
-function wireNewAsmModal(){
-  var btnC=document.getElementById('btnNewAsmCancel');
-  if(btnC)btnC.onclick=function(){document.getElementById('modalNewAsm').classList.remove('on');};
-  var btnS=document.getElementById('btnNewAsmSave');
-  if(btnS)btnS.onclick=function(){
-    var id=document.getElementById('newAsmId').value.trim().toUpperCase();
-    var name=document.getElementById('newAsmName').value.trim();
-    var time=parseInt(document.getElementById('newAsmTime').value)||120;
-    if(!id||!name){alert('Zadejte ID a název sestavy');return;}
-    if(getAllAsmIds().includes(id)){alert('Sestava s tímto ID již existuje');return;}
-    var custom=getCustomAsmIds();
-    if(!custom.includes(id)){custom.push(id);lsSet('custom_asms',custom);}
-    saveAsmCfg(id,{id:id,name:name,estimatedMin:time,milestones:[],warnings:[],minPhotos:0,photoDesc:'',docUrl:'',docNote:''});
-    document.getElementById('modalNewAsm').classList.remove('on');
-    buildAsmSelect();
-    document.getElementById('asmSel').value=id;
-    document.getElementById('asmEditArea').style.display='block';
-    loadAsmEditor(id);
-  };
-}
-
-// ═══ NOTIFIKACE ═══
-function requestNotifPermission(){
-  if('Notification' in window&&Notification.permission==='default'){
-    Notification.requestPermission();
-  }
-}
-function sendNotif(title,body,icon){
-  if('Notification' in window&&Notification.permission==='granted'){
-    new Notification(title,{body:body,icon:icon||'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">⚙</text></svg>'});
-  }
-}
-
-// Notifikace při přidání problému s vysokou prioritou
-function notifHighPriority(issueText,asmId){
-  sendNotif('⚠ Vysoká priorita — '+asmId,issueText);
-}
-
-// Notifikace při překročení časového limitu (volá se z timeru)
-var _notifSentForSess={};
-function checkTimerNotif(){
-  if(!curSessKey||!curAsmId)return;
-  var s=loadSess(curSessKey);if(!s||!s.isRunning)return;
-  var rem=getSessRem(s);
-  if(rem<0&&!_notifSentForSess[curSessKey]){
-    _notifSentForSess[curSessKey]=true;
-    sendNotif('⏱ Čas překročen — '+curAsmId,'Montáž překračuje odhadovaný čas. Zkontrolujte postup.');
-  }
-}
-
-// ─── EXPORT / IMPORT CONFIG ───
-function exportConfig(){
-  var cfg={version:1,exportedAt:new Date().toLocaleString('cs-CZ'),assemblies:{},projects:getProjects(),mechanics:getMechs()};
-  allAsmIds().forEach(function(id){
-    var saved=ls('asm_'+id,null);
-    if(saved)cfg.assemblies[id]=saved;
-  });
-  var json=JSON.stringify(cfg,null,2);
-  var blob=new Blob([json],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  var a=document.createElement('a');a.href=url;a.download='montaz_zaloha_'+new Date().toISOString().slice(0,10)+'.json';
-  document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-}
-function importConfig(file){
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var cfg=JSON.parse(e.target.result);
-      if(!cfg.version){throw new Error('Neplatný formát souboru');}
-      var count=0;
-      // importuj sestavy
-      if(cfg.assemblies){Object.entries(cfg.assemblies).forEach(function(entry){lsSet('asm_'+entry[0],entry[1]);count++;});}
-      // importuj projekty (volitelně)
-      if(cfg.projects&&cfg.projects.length){saveProjects(cfg.projects);}
-      // importuj mechaniky (volitelně)
-      if(cfg.mechanics&&cfg.mechanics.length){saveMechs(cfg.mechanics);}
-      // Synchronizuj importovaná data i do Supabase
-      if(cfg.assemblies){Object.entries(cfg.assemblies).forEach(function(entry){sbUpsert('assembly_configs',asmCfgToDb(entry[0],entry[1]));});}
-      if(cfg.projects&&cfg.projects.length){sbUpsert('projects',cfg.projects.map(projToDb));}
-      if(cfg.mechanics&&cfg.mechanics.length){sbUpsert('mechanics',cfg.mechanics.map(mechToDb));}
-      var st=document.getElementById('importStatus');
-      st.style.display='inline';st.textContent='✓ Importováno '+count+' sestav';
-      setTimeout(function(){st.style.display='none';},3000);
-      buildAdmin();
-      document.getElementById('asmSel').value='';
-      document.getElementById('asmEditArea').style.display='none';
-    }catch(err){alert('Chyba při importu: '+err.message);}
-  };
-  reader.readAsText(file);
-}
-
-function exportApp(){
-  var asmConfigs={};
-  allAsmIds().forEach(function(id){
-    var saved=ls('asm_'+id,null);
-    if(saved)asmConfigs[id]=saved;
-  });
-
-  var exportVersion=Date.now(); // verze exportu - novější přepíše starší
-
-  var data={
-    assemblies: asmConfigs,
-    projects: getProjects(),
-    mechanics: getMechs(),
-    version: exportVersion
-  };
-
-  // Init kód který se vloží do HTML
-  // Přepíše admin data VŽDY pokud je tato verze novější než ta uložená v zařízení
-  // (data mechaniků - sess_*, completed, gi - se NIKDY nepřepisují)
-  var initCode=[
-    '(function(){',
-    'var d='+JSON.stringify(data)+';',
-    'var localVer=parseInt(localStorage.getItem("__data_version__")||"0");',
-    'if(d.version>localVer){',
-    '  var a=d.assemblies;',
-    '  Object.keys(a).forEach(function(id){',
-    '    localStorage.setItem("asm_"+id,JSON.stringify(a[id]));',
-    '  });',
-    '  localStorage.setItem("projects",JSON.stringify(d.projects));',
-    '  localStorage.setItem("mechs",JSON.stringify(d.mechanics));',
-    '  localStorage.setItem("__data_version__",String(d.version));',
-    '}',
-    'var el=document.getElementById("__xd__");',
-    'if(el)el.parentNode.removeChild(el);',
-    '})();'
-  ].join('\n');
-
-  // Vezmi HTML - fetch je async ale potřebujeme sync
-  fetch(window.location.href)
-    .then(function(r){return r.text();})
-    .then(function(html){
-      // Odstraň starý init blok pokud existuje
-      var s1=html.indexOf('<script id="__xd__">');
-      if(s1>-1){
-        var s2=html.indexOf('<\/script>',s1);
-        if(s2>-1)html=html.slice(0,s1)+html.slice(s2+9);
-      }
-      // Vlož nový init blok za <body>
-      var initTag='<scr'+'ipt id="__xd__">'+initCode+'<'+'/script>';
-      html=html.replace('<body>','<body>\n'+initTag+'\n');
-      // Stáhni
-      var blob=new Blob([html],{type:'text/html;charset=utf-8'});
-      var url=URL.createObjectURL(blob);
-      var a=document.createElement('a');
-      a.href=url;a.download='index.html';
-      document.body.appendChild(a);a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      alert('index.html stažen. Nahrajte na GitHub.');
-    })
-    .catch(function(){
-      // Fallback pokud fetch selže i na http(s)
-      var html3='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
-      finishExport(html3);
-    });
-}
-
-function buildStats(){
-  var completed=ls('completed',[]);
-  var cont=document.getElementById('statsContent');cont.innerHTML='';
-  var issues=loadGI();
-  var sessions=allSessions();
-
-  // ── Souhrnné tiles ──
-  var totalDone=completed.length;
-  var totalTime=completed.reduce(function(s,r){return s+(r.durationSec||0);},0);
-  var avgTime=totalDone?Math.round(totalTime/totalDone/60):0;
-  var openIssues=issues.filter(function(i){return!i.resolved;}).length;
-  var totalIssues=issues.length;
-  var activeNow=sessions.length;
-
-  var grid=document.createElement('div');grid.className='stat-grid';
-  grid.innerHTML=
-    '<div class="stat-tile"><div class="stat-tile-val ok">'+totalDone+'</div><div class="stat-tile-lbl">Dokončených montáží</div></div>'+
-    '<div class="stat-tile"><div class="stat-tile-val ac">'+activeNow+'</div><div class="stat-tile-lbl">Probíhajících montáží</div></div>'+
-    '<div class="stat-tile"><div class="stat-tile-val">'+avgTime+' min</div><div class="stat-tile-lbl">Průměrný čas montáže</div></div>'+
-    '<div class="stat-tile"><div class="stat-tile-val '+(openIssues>0?'er':'ok')+'">'+openIssues+'</div><div class="stat-tile-lbl">Otevřených problémů</div></div>'+
-    '<div class="stat-tile"><div class="stat-tile-val">'+totalIssues+'</div><div class="stat-tile-lbl">Celkem hlášených problémů</div></div>';
-  cont.appendChild(grid);
-
-  // ── Časy podle sestavy ──
-  if(completed.length){
-    var byAsm={};
-    completed.forEach(function(r){
-      if(!byAsm[r.asmId])byAsm[r.asmId]={name:r.asmName,times:[],count:0};
-      byAsm[r.asmId].times.push(r.durationSec||0);byAsm[r.asmId].count++;
-    });
-    var asmStats=Object.entries(byAsm).map(function(e){
-      var avg=Math.round(e[1].times.reduce(function(a,b){return a+b;},0)/e[1].times.length/60);
-      var cfg=getAsmCfg(e[0]);return{id:e[0],name:e[1].name,avg:avg,count:e[1].count,limit:cfg.estimatedMin};
-    }).sort(function(a,b){return b.count-a.count;});
-    var maxAvg=asmStats.reduce(function(m,a){return a.avg>m?a.avg:m;},1);
-    var h1=document.createElement('div');h1.innerHTML='<div style="font-size:14px;font-weight:600;margin-bottom:10px">Průměrný čas montáže podle sestavy</div>';cont.appendChild(h1);
-    var asmBlock=document.createElement('div');asmBlock.className='acard';
-    asmStats.forEach(function(a){
-      var over=a.avg>a.limit;
-      var row=document.createElement('div');row.className='stat-bar-row';
-      row.innerHTML='<div class="stat-bar-name" style="font-size:12px">'+esc(a.id)+'<br><span style="font-size:10px;color:var(--mu)">'+a.count+'× montáž</span></div>'+
-        '<div class="stat-bar-wrap"><div class="stat-bar-fill" style="width:'+Math.round(a.avg/maxAvg*100)+'%;background:'+(over?'var(--er)':'var(--ok)')+'"></div></div>'+
-        '<div class="stat-bar-val" style="color:'+(over?'var(--er)':'var(--ok)')+'">'+a.avg+' min'+(over?' ⚠':'')+'</div>';
-      asmBlock.appendChild(row);
-    });
-    cont.appendChild(asmBlock);
-  }
-
-  // ── Mechanici ──
-  var byMech={};
-  completed.forEach(function(r){
-    if(!byMech[r.mechanic])byMech[r.mechanic]={count:0,totalSec:0,issues:0};
-    byMech[r.mechanic].count++;byMech[r.mechanic].totalSec+=(r.durationSec||0);
-    byMech[r.mechanic].issues+=r.issues.length;
-  });
-  if(Object.keys(byMech).length){
-    var h2=document.createElement('div');h2.innerHTML='<div style="font-size:14px;font-weight:600;margin:16px 0 10px">Mechanici</div>';cont.appendChild(h2);
-    var mechBlock=document.createElement('div');mechBlock.className='acard';
-    var maxCount=Object.values(byMech).reduce(function(m,v){return v.count>m?v.count:m;},1);
-    Object.entries(byMech).sort(function(a,b){return b[1].count-a[1].count;}).forEach(function(e){
-      var avg=e[1].count?Math.round(e[1].totalSec/e[1].count/60):0;
-      var row=document.createElement('div');row.className='stat-bar-row';
-      row.innerHTML='<div class="stat-bar-name">'+esc(e[0])+'<br><span style="font-size:10px;color:var(--mu)">⌀ '+avg+' min · ⚠ '+e[1].issues+' prob.</span></div>'+
-        '<div class="stat-bar-wrap"><div class="stat-bar-fill" style="width:'+Math.round(e[1].count/maxCount*100)+'%"></div></div>'+
-        '<div class="stat-bar-val">'+e[1].count+'×</div>';
-      mechBlock.appendChild(row);
-    });
-    cont.appendChild(mechBlock);
-  }
-
-  // ── Nejčastější problémy ──
-  if(issues.length){
-    var h3=document.createElement('div');h3.innerHTML='<div style="font-size:14px;font-weight:600;margin:16px 0 10px">Nejčastější typy problémů</div>';cont.appendChild(h3);
-    var byPri={hi:0,med:0,low:0};
-    issues.forEach(function(i){byPri[i.priority||'low']++;});
-    var priBlock=document.createElement('div');priBlock.className='stat-grid';
-    priBlock.innerHTML=
-      '<div class="stat-tile"><div class="stat-tile-val er">'+byPri.hi+'</div><div class="stat-tile-lbl">Vysoká priorita</div></div>'+
-      '<div class="stat-tile"><div class="stat-tile-val" style="color:var(--go)">'+byPri.med+'</div><div class="stat-tile-lbl">Střední priorita</div></div>'+
-      '<div class="stat-tile"><div class="stat-tile-val gn">'+byPri.low+'</div><div class="stat-tile-lbl">Nízká priorita</div></div>';
-    cont.appendChild(priBlock);
-  }
-
-  if(!completed.length&&!issues.length){cont.innerHTML='<div class="empty"><div class="empty-ico">📊</div>Zatím žádná data. Statistiky se zobrazí po prvních dokončených montážích.</div>';}
-}
-
-function updateIssuesBadge(){
-  var open=loadGI().filter(function(i){return!i.resolved;}).length;
-  var badge=document.getElementById('issuesBadge');
-  if(!badge)return;
-  if(open>0){badge.textContent=open;badge.classList.add('on');}
-  else badge.classList.remove('on');
-}
-function buildAdmin(){buildAsmSelect();buildMechList();buildProjAdmList();buildLog();updateIssuesBadge();
-  // wire export/import buttons
-  var expBtn=document.getElementById('btnExportCfg');
-  if(expBtn)expBtn.onclick=exportConfig;
-  var expApp=document.getElementById('btnExportApp');
-  if(expApp)expApp.onclick=exportApp;
-  var impFile=document.getElementById('importCfgFile');
-  if(impFile)impFile.onchange=function(){if(this.files[0]){importConfig(this.files[0]);this.value='';}};
-  // Smazat záznamy
-  var btnCL=document.getElementById('btnClearLog');
-  if(btnCL)btnCL.onclick=function(){if(confirm('Smazat všechny záznamy?\nAkce je nevratná.')){var old=ls('completed',[]);lsSet('completed',[]);old.forEach(function(r){sbDelete('completed','id',r.id);});buildLog();buildStats();}};
-  // Smazat vyřešené problémy
-  var btnCR=document.getElementById('btnClearResolvedIss');
-  if(btnCR)btnCR.onclick=function(){if(confirm('Smazat vyřešené problémy?')){var all=loadGI();var resolved=all.filter(function(i){return i.resolved;});lsSet('gi',all.filter(function(i){return!i.resolved;}));resolved.forEach(function(i){sbDelete('issues','id',i.id);});buildAdmIssues();updateIssuesBadge();}};
-  // Smazat všechny problémy
-  var btnCA=document.getElementById('btnClearAllIss');
-  if(btnCA)btnCA.onclick=function(){if(confirm('Smazat VŠECHNY problémy?\nAkce je nevratná.')){var all=loadGI();lsSet('gi',[]);all.forEach(function(i){sbDelete('issues','id',i.id);});buildAdmIssues();updateIssuesBadge();}};
-  // Vynulovat statistiky
-  var btnRS=document.getElementById('btnResetStats');
-  if(btnRS)btnRS.onclick=function(){if(confirm('Vynulovat statistiky?\nSmaže historii dokončených montáží.')){var old=ls('completed',[]);lsSet('completed',[]);old.forEach(function(r){sbDelete('completed','id',r.id);});buildStats();buildLog();}};
-  // Manuální obnovení dat ze Supabase
-  // Nová sestava
-  var btnNA=document.getElementById('btnNewAsm');
-  if(btnNA)btnNA.onclick=function(){
-    document.getElementById('newAsmId').value='';
-    document.getElementById('newAsmName').value='';
-    document.getElementById('newAsmTime').value='120';
-    document.getElementById('modalNewAsm').classList.add('on');
-  };
-  wireNewAsmModal();
-  var btnSync=document.getElementById('btnSyncNow');
-  if(btnSync)btnSync.onclick=function(){
-    btnSync.textContent='⏳ Obnovuji…';btnSync.disabled=true;
-    syncFromSupabase().then(function(){
-      buildAsmSelect();buildMechList();buildProjAdmList();buildLog();buildAdmIssues();updateIssuesBadge();buildLive();
-      btnSync.textContent='✓ Obnoveno';
-      setTimeout(function(){btnSync.textContent='🔄 Obnovit data';btnSync.disabled=false;},1500);
-    });
-  };
-}
-document.querySelectorAll('.anatab').forEach(function(btn){
-  btn.addEventListener('click',function(){
-    document.querySelectorAll('.anatab').forEach(function(b){b.classList.remove('on');});
-    document.querySelectorAll('.apane').forEach(function(p){p.classList.remove('on');});
-    btn.classList.add('on');document.getElementById(btn.dataset.ap).classList.add('on');
-    if(btn.dataset.ap==='aLive')buildLive();
-    if(btn.dataset.ap==='aIss')buildAdmIssues();
-    if(btn.dataset.ap==='aLog')buildLog();
-    if(btn.dataset.ap==='aProj')buildProjAdmList();
-    if(btn.dataset.ap==='aMech')buildMechList();
-    if(btn.dataset.ap==='aStats')buildStats();
-  });
-});
-
-// ─── LIVE ───
-var liveIv=null;
-function startLive(){buildLive();updateIssuesBadge();liveIv=setInterval(function(){buildLive();updateIssuesBadge();},5000);}
-function stopLive(){clearInterval(liveIv);liveIv=null;}
-function buildLive(){
-  // cleanup broken sessions first
-  Object.keys(localStorage).forEach(function(key){
-    if(key.startsWith('sess_')){
-      try{var s=JSON.parse(localStorage.getItem(key));if(!s||!s.asmId||s.asmId==='undefined')localStorage.removeItem(key);}
-      catch(e){localStorage.removeItem(key);}
-    }
-  });
-  var board=document.getElementById('liveBoard');board.innerHTML='';
-  var sessions=allSessions();
-  document.getElementById('liveEmpty').style.display=sessions.length?'none':'block';
-  document.getElementById('liveRef').textContent='Obnoveno: '+new Date().toLocaleTimeString('cs-CZ')+' · každých 5 s';
-  sessions.forEach(function(s){
-    var cfg=getAsmCfg(s.asmId);var rem=getSessRem(s);var over=rem<0;
-    var ms=cfg.milestones||[];var msDone=(s.milestonesDone||[]).length;var msT=ms.length;var msPct=msT?Math.round(msDone/msT*100):0;
-    var unres=(s.issues||[]).filter(function(i){return!i.resolved;}).length;var ph=s.photoCount||0;
-    var card=document.createElement('div');card.className='livecard'+(s.isRunning?over?' over':' run':'');
-    var liveWorkers=s.workers||[];
-    var workersHtml=liveWorkers.length>1?'<div style="font-size:10px;color:var(--mu);font-family:monospace;margin-top:2px">👥 '+liveWorkers.map(function(w){return w.name;}).join(', ')+'</div>':'';
-    card.innerHTML='<div class="livetop"><div class="liveav">'+esc(s.mechAv)+'</div><div><div class="livename">'+esc(s.mechName)+workersHtml+'</div><div class="liveasm">'+esc(s.asmId)+' — '+esc(cfg.name)+'</div></div><div class="livetimer '+(rem>0?'g':'r')+'">'+fmtCD(rem)+'</div></div>'+
-      '<div class="livebars">'+
-      '<div class="livebar"><div class="lbarlbl">MILNÍKY</div><div class="lbarval '+(msPct===100?'ok':'')+'">'+msDone+'/'+msT+'</div><div class="minibar"><div class="minibarf" style="width:'+msPct+'%"></div></div></div>'+
-      '<div class="livebar"><div class="lbarlbl">PROBLÉMY</div><div class="lbarval '+(unres>0?'er':'ok')+'">'+unres+' otevřených</div></div>'+
-      '<div class="livebar"><div class="lbarlbl">FOTKY</div><div class="lbarval '+(ph>=(cfg.minPhotos||0)?'ok':'wn')+'">'+ph+(cfg.minPhotos>0?'/'+cfg.minPhotos:'')+'</div></div>'+
-      '</div><div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between">'+
-      '<span style="font-size:10px;color:var(--mu);font-family:monospace">'+esc(s.startedAt)+' · '+(s.isRunning?'<span style="color:var(--ok)">▶ Běží</span>':'<span>⏸ Pauza</span>')+'</span>'+
-      '<button class="btn btn-danger live-del-btn" data-aid="'+s.asmId+'" style="padding:3px 10px;font-size:11px">✕ Smazat session</button>'+
-      '</div>';
-    (function(asmId){
-      card.querySelector('.live-del-btn').addEventListener('click',function(){
-        if(confirm('Smazat rozdělanou montáž sestavy '+asmId+'?')){
-          // Smaž všechny sessions pro tuto sestavu (ze všech projektů)
-          Object.keys(localStorage).filter(function(k){return k.indexOf('sess_')===0&&(k.endsWith('::'+asmId)||k==='sess_'+asmId);}).forEach(function(k){localStorage.removeItem(k);});
-          sbDelete('sessions','asm_id',asmId);
-          buildLive();
-        }
-      });
-    })(s.asmId);
-    board.appendChild(card);
-  });
-}
-
-// ─── PROJECTS ADMIN ───
-function buildProjAdmList(){
-  var list=document.getElementById('projAdmList');list.innerHTML='';
-  var projects=getProjects();
-  document.getElementById('projAdmEmpty').style.display=projects.length?'none':'block';
-  projects.forEach(function(proj,idx){
-    var ids=proj.assemblyIds||[];var prog=calcProjProg(proj);
-    var row=document.createElement('div');row.className='peditrow';
-    row.innerHTML='<div class="pedithdr"><div class="peditname">'+esc(proj.name)+'</div><span class="tag '+(proj.closed?'tag-mu':'tag-ok')+'">'+(proj.closed?'UZAVŘENO':'OTEVŘENO')+'</span></div>'+
-      (proj.desc?'<div style="font-size:12px;color:var(--mu);margin-bottom:8px">'+esc(proj.desc)+'</div>':'')+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><div style="flex:1;background:var(--bd);border-radius:3px;height:4px;overflow:hidden"><div style="height:100%;background:var(--ok);width:'+prog.pct+'%"></div></div>'+
-      '<span style="font-family:monospace;font-size:11px;color:var(--mu)">'+prog.pct+'%</span><span style="font-size:11px;color:var(--mu)">'+prog.done+'/'+prog.total+' sestav</span></div>'+
-      '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
-      '<button class="btn btn-ghost" data-a="edit" data-i="'+idx+'" style="padding:5px 10px;font-size:11px">✏ Upravit</button>'+
-      '<button class="btn btn-ghost" data-a="prog" data-i="'+idx+'" style="padding:5px 10px;font-size:11px">📊 Postup</button>'+
-      '<button class="btn btn-ghost" data-a="tog" data-i="'+idx+'" style="padding:5px 10px;font-size:11px">'+(proj.closed?'🔓 Otevřít':'🔒 Uzavřít')+'</button>'+
-      '<button class="btn btn-danger" data-a="del" data-i="'+idx+'" style="padding:5px 10px;font-size:11px">✕</button></div>'+
-      '<div id="pprog_'+idx+'" style="display:none;margin-top:10px;border-top:1px solid var(--bd);padding-top:10px">'+buildProjProgHtml(proj)+'</div>';
-    row.querySelectorAll('[data-a]').forEach(function(btn){
-      btn.addEventListener('click',function(){
-        var i=Number(btn.dataset.i);var projs=getProjects();
-        if(btn.dataset.a==='edit')openProjModal(projs[i],i);
-        if(btn.dataset.a==='prog'){var det=document.getElementById('pprog_'+i);det.style.display=det.style.display==='none'?'block':'none';}
-        if(btn.dataset.a==='tog'){projs[i].closed=!projs[i].closed;saveProjects(projs);buildProjAdmList();}
-        if(btn.dataset.a==='del'){if(confirm('Smazat projekt "'+projs[i].name+'"?')){var delId=projs[i].id;projs.splice(i,1);saveProjects(projs);sbDelete('projects','id',delId);buildProjAdmList();}}
-      });
-    });
-    list.appendChild(row);
-  });
-}
-function calcProjProg(proj){
-  var ids=proj.assemblyIds||[];
-  var total=ids.length;
-  if(!total)return{pct:0,done:0,total:0};
-  // sestava je "hotová" pokud existuje záznam v completed
-  var completed=ls('completed',[]);
-  var completedIds=new Set(completed.map(function(r){return r.asmId;}));
-  var done=ids.filter(function(id){return completedIds.has(id);}).length;
-  return{pct:Math.round(done/total*100),done:done,total:total};
-}
-function buildProjProgHtml(proj){
-  var ids=proj.assemblyIds||[];
-  if(!ids.length)return'<div style="color:var(--mu);font-size:12px">Žádné sestavy</div>';
-  // Načti completed záznamy - každá sestava může mít více dokončení, bereme poslední
-  var completed=ls('completed',[]);
-  var lastCompleted={};
-  completed.forEach(function(r){
-    if(!lastCompleted[r.asmId])lastCompleted[r.asmId]=r;
-  });
-  var html='<table style="width:100%;border-collapse:collapse">';
-  html+='<tr>'+
-    '<th style="font-family:monospace;font-size:9px;color:var(--mu);text-align:left;padding:4px 6px;border-bottom:1px solid var(--bd)">SESTAVA</th>'+
-    '<th style="font-family:monospace;font-size:9px;color:var(--mu);text-align:center;padding:4px 6px;border-bottom:1px solid var(--bd)">MILNÍKY</th>'+
-    '<th style="font-family:monospace;font-size:9px;color:var(--mu);text-align:center;padding:4px 6px;border-bottom:1px solid var(--bd)">%</th>'+
-    '<th style="font-family:monospace;font-size:9px;color:var(--mu);text-align:left;padding:4px 6px;border-bottom:1px solid var(--bd)">MECH.</th></tr>';
-  ids.forEach(function(id){
-    var cfg=getAsmCfg(id);var ms=cfg.milestones||[];var t=ms.length;
-    var sess=loadSess(id);      // aktivní session
-    var rec=lastCompleted[id];  // poslední dokončení
-    var d=0,pct=0,mechName='—',status='tag-mu',statusTxt='',cur=0,isDone=false;
-    if(rec){
-      // Sestava dokončena - 100%
-      d=t;pct=100;mechName=rec.mechanic;isDone=true;
-    } else if(sess){
-      // Sestava rozpracována
-      d=(sess.milestonesDone||[]).length;
-      pct=t?Math.round(d/t*100):0;
-      cur=sess.currentMs||0;
-      mechName=sess.mechName;
-    }
-    status=isDone?'tag-ok':d>0?'tag-go':'tag-mu';
-    statusTxt=isDone?d+'/'+t+' ✓':d+'/'+t+(t&&d<t&&sess?' (ms '+(cur+1)+')':'');
-    html+='<tr>'+
-      '<td style="padding:6px;font-family:monospace;font-size:11px;color:var(--go)">'+esc(id)+'<br>'+
-        '<span style="color:var(--mu);font-size:10px">'+esc(cfg.name)+'</span></td>'+
-      '<td style="padding:6px;text-align:center">'+
-        '<span class="tag '+status+'">'+statusTxt+'</span>'+
-        (isDone?'<br><span style="font-size:9px;color:var(--mu)">'+esc(rec.completedAt)+'</span>':'')+
-      '</td>'+
-      '<td style="padding:6px;text-align:center;font-family:monospace;font-size:11px;color:'+
-        (pct===100?'var(--ok)':pct>0?'var(--go)':'var(--mu)')+'">'+pct+'%</td>'+
-      '<td style="padding:6px;font-size:11px;color:var(--mu)">'+esc(mechName)+'</td></tr>';
-  });
-  html+='</table>';return html;
-}
-document.getElementById('btnNewProj').addEventListener('click',function(){openProjModal(null,null);});
-function openProjModal(proj,idx){
-  document.getElementById('projEditT').textContent=proj?'📁 UPRAVIT PROJEKT':'📁 NOVÝ PROJEKT';
-  document.getElementById('peN').value=proj?proj.name:'';document.getElementById('peD').value=proj?proj.desc||'':'';
-  var sel=new Set(proj?proj.assemblyIds||[]:[]);var picker=document.getElementById('pePicker');picker.innerHTML='';
-  getAllAsmIds().forEach(function(id){
-    if(isAsmHidden(id))return;
-    var cfg=getAsmCfg(id);var b=document.createElement('button');b.className='apick'+(sel.has(id)?' on':'');
-    b.textContent=id+' '+cfg.name;b.dataset.id=id;
-    b.addEventListener('click',function(){b.classList.toggle('on');updatePickCnt();});
-    picker.appendChild(b);
-  });
-  updatePickCnt();document.getElementById('mProjEdit').classList.add('on');
-  document.getElementById('btnPESave').onclick=function(){
-    var name=document.getElementById('peN').value.trim();if(!name){alert('Zadejte název');return;}
-    var asmIds=[...document.querySelectorAll('#pePicker .apick.on')].map(function(b){return b.dataset.id;});
-    var projs=getProjects();
-    if(idx!=null){projs[idx].name=name;projs[idx].desc=document.getElementById('peD').value.trim();projs[idx].assemblyIds=asmIds;}
-    else projs.push({id:uid(),name:name,desc:document.getElementById('peD').value.trim(),assemblyIds:asmIds,closed:false,createdAt:new Date().toLocaleDateString('cs-CZ')});
-    saveProjects(projs);document.getElementById('mProjEdit').classList.remove('on');buildProjAdmList();
-  };
-}
-function updatePickCnt(){document.getElementById('pePickCnt').textContent='Vybráno: '+document.querySelectorAll('#pePicker .apick.on').length+' sestav';}
-document.getElementById('btnPECancel').addEventListener('click',function(){document.getElementById('mProjEdit').classList.remove('on');});
-
-// ─── ASSEMBLIES ADMIN ───
-function getCustomAsmIds(){return ls('custom_asms',[]);}
-function getAllAsmIds(){
-  var dbIds=allAsmIds();
-  var custom=getCustomAsmIds().filter(function(id){return!dbIds.includes(id);});
-  return dbIds.concat(custom).sort();
-}
-function isAsmHidden(id){var hidden=ls('hidden_asms',[]);return hidden.includes(id);}
-function setAsmHidden(id,hide){
-  var hidden=ls('hidden_asms',[]);
-  if(hide){if(!hidden.includes(id))hidden.push(id);}
-  else{hidden=hidden.filter(function(h){return h!==id;});}
-  lsSet('hidden_asms',hidden);
-}
-
-function buildAsmSelect(){
-  var sel=document.getElementById('asmSel');sel.innerHTML='<option value="">— Vyberte —</option>';
-  getAllAsmIds().forEach(function(id){
-    var cfg=getAsmCfg(id);
-    var hidden=isAsmHidden(id);
-    var o=document.createElement('option');
-    o.value=id;
-    o.textContent=(hidden?'[skrytá] ':'')+id+' — '+cfg.name;
-    sel.appendChild(o);
-  });
-}
-document.getElementById('asmSel').addEventListener('change',function(){
-  var id=this.value;var area=document.getElementById('asmEditArea');
-  if(!id){area.style.display='none';return;}area.style.display='block';loadAsmEditor(id);
-});
-function loadAsmEditor(id){
-  var cfg=getAsmCfg(id);var area=document.getElementById('asmEditArea');area.innerHTML='';
-  var basic=document.createElement('div');basic.className='acard';
-  basic.innerHTML='<h3>ZÁKLADNÍ INFO</h3>'+
-    '<div class="afield"><label class="lbl">Název</label><input type="text" id="aeName" class="inp" value="'+esc(cfg.name)+'"></div>'+
-    '<div class="afield"><label class="lbl">Odhadovaný čas (min.)</label><input type="number" id="aeTime" class="inp" style="max-width:120px" value="'+(cfg.estimatedMin||120)+'"></div>';
-  area.appendChild(basic);
-  var msCard=document.createElement('div');msCard.className='acard';
-  msCard.innerHTML='<h3>MILNÍKY</h3><p style="font-size:12px;color:var(--mu);margin-bottom:12px">Každý milník je potvrzovací krok mechanika.</p>'+
-    '<div id="aeMsList"></div><button class="btn btn-ghost" id="aeAddMs" style="width:100%;margin-top:8px;font-size:12px">+ Přidat milník</button>';
-  area.appendChild(msCard);
-  renderMsEditor(cfg.milestones||[]);
-  document.getElementById('aeAddMs').addEventListener('click',function(){
-    var list=document.getElementById('aeMsList');addMsEdRow(list,{title:'',desc:'',requirePhoto:false},list.children.length);
-  });
-  var warnCard=document.createElement('div');warnCard.className='acard';
-  warnCard.innerHTML='<h3>UPOZORNĚNÍ</h3><div id="aeWarnList"></div><button class="btn btn-ghost" id="aeAddWarn" style="width:100%;margin-top:8px;font-size:12px">+ Přidat upozornění</button>';
-  area.appendChild(warnCard);
-  var wl=document.getElementById('aeWarnList');(cfg.warnings||[]).forEach(function(w){addSimpleRow(wl,w);});
-  document.getElementById('aeAddWarn').addEventListener('click',function(){addSimpleRow(document.getElementById('aeWarnList'),'');});
-  var phCard=document.createElement('div');phCard.className='acard';
-  phCard.innerHTML='<h3>FOTODOKUMENTACE</h3>'+
-    '<div class="afield"><label class="lbl">Min. počet fotek</label><input type="number" id="aeMinPh" class="inp" style="max-width:120px" value="'+(cfg.minPhotos||0)+'" min="0"></div>'+
-    '<div class="afield"><label class="lbl">Popis co fotografovat</label><textarea id="aePhDesc" class="inp">'+esc(cfg.photoDesc||'')+'</textarea></div>';
-  area.appendChild(phCard);
-  var docCard=document.createElement('div');docCard.className='acard';
-  docCard.innerHTML='<h3>DOKUMENTACE</h3>'+
-    '<div class="afield"><label class="lbl">Odkaz URL</label><input type="url" id="aeDocUrl" class="inp" placeholder="https://…" value="'+esc(cfg.docUrl||'')+'"></div>'+
-    '<div class="afield"><label class="lbl">Popis odkazu</label><input type="text" id="aeDocNote" class="inp" value="'+esc(cfg.docNote||'')+'"></div>';
-  area.appendChild(docCard);
-  var isHidden=isAsmHidden(id);
-  var saveRow=document.createElement('div');saveRow.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap';
-  saveRow.innerHTML='<button class="asavebtn" id="aeSave">💾 ULOŽIT</button><span class="savedok" id="aeSaveOk">✓ Uloženo</span><button class="btn btn-ghost" id="aeCopyBtn" style="padding:6px 14px;font-size:12px">📋 Kopírovat jako šablonu</button>'+
-    '<button class="btn btn-danger" id="aeHideBtn" style="margin-left:auto;padding:6px 14px;font-size:12px">'+(isHidden?'👁 Zobrazit sestavu':'🙈 Skrýt sestavu')+'</button>';
-  area.appendChild(saveRow);
-  document.getElementById('aeHideBtn').addEventListener('click',function(){
-    setAsmHidden(id,!isAsmHidden(id));
-    buildAsmSelect();
-    document.getElementById('asmSel').value=id;
-    loadAsmEditor(id);
-  });
-  // Kopírovat sestavu jako šablonu
-  document.getElementById('aeCopyBtn').addEventListener('click',function(){
-    var ms2=collectMsEditor();
-    var warns=[...document.querySelectorAll('#aeWarnList .si')].map(function(i){return i.value.trim();}).filter(Boolean);
-    var newId=prompt('Zadejte ID nové sestavy (kopie):','');
-    if(!newId)return;
-    newId=newId.trim().toUpperCase();
-    if(!newId){alert('Zadejte platné ID');return;}
-    if(getAllAsmIds().includes(newId)){alert('Sestava s tímto ID již existuje');return;}
-    // Ulož custom ID
-    var custom=getCustomAsmIds();
-    if(!custom.includes(newId)){custom.push(newId);lsSet('custom_asms',custom);}
-    // Kopíruj konfiguraci
-    var newName=prompt('Název nové sestavy:',document.getElementById('aeName').value.trim()+' (kopie)');
-    if(!newName)return;
-    saveAsmCfg(newId,{id:newId,name:newName.trim(),estimatedMin:parseInt(document.getElementById('aeTime').value)||120,milestones:ms2,warnings:warns,minPhotos:parseInt(document.getElementById('aeMinPh').value)||0,photoDesc:document.getElementById('aePhDesc').value.trim(),docUrl:document.getElementById('aeDocUrl').value.trim(),docNote:document.getElementById('aeDocNote').value.trim()});
-    buildAsmSelect();
-    document.getElementById('asmSel').value=newId;
-    document.getElementById('asmEditArea').style.display='block';
-    loadAsmEditor(newId);
-    alert('Sestava zkopírována jako: '+newId+' — '+newName);
-  });
-  document.getElementById('aeSave').addEventListener('click',function(){
-    var ms2=collectMsEditor();var warns=[...document.querySelectorAll('#aeWarnList .si')].map(function(i){return i.value.trim();}).filter(Boolean);
-    saveAsmCfg(id,{id:id,name:document.getElementById('aeName').value.trim()||cfg.name,estimatedMin:parseInt(document.getElementById('aeTime').value)||120,milestones:ms2,warnings:warns,minPhotos:parseInt(document.getElementById('aeMinPh').value)||0,photoDesc:document.getElementById('aePhDesc').value.trim(),docUrl:document.getElementById('aeDocUrl').value.trim(),docNote:document.getElementById('aeDocNote').value.trim()});
-    var t=document.getElementById('aeSaveOk');t.style.display='inline';setTimeout(function(){t.style.display='none';},2500);
-    buildAsmSelect();document.getElementById('asmSel').value=id;
-  });
-}
-function renderMsEditor(ms){var list=document.getElementById('aeMsList');list.innerHTML='';ms.forEach(function(m,i){addMsEdRow(list,m,i);});}
-function addMsEdRow(list,m,i){
-  var d=document.createElement('div');d.className='acard';d.style.cssText='background:var(--s2);margin-bottom:8px';
-  var idx=i!=null?i:list.children.length;
-  var chkId='mschk_'+Date.now()+'_'+idx;
-  d.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
-    '<span style="font-family:monospace;font-size:10px;color:var(--go)" class="msednum">MILNÍK '+(idx+1)+'</span>'+
-    '<button class="btn btn-danger msedel" style="margin-left:auto;padding:3px 8px;font-size:11px">✕</button></div>'+
-    '<div class="afield"><label class="lbl">Název milníku</label><input type="text" class="inp ms-tit" value="'+esc(m.title||'')+'"></div>'+
-    '<div class="afield"><label class="lbl">Popis / kroky (každý řádek = krok)</label><textarea class="inp ms-desc" rows="3">'+esc((m.steps&&m.steps.length)?m.steps.join('\n'):(m.desc||''))+'</textarea></div>'+
-    '<div class="afield"><label class="lbl">Referenční fotky (návod pro mechanika)</label>'+
-    '<div class="ms-ref-photos" id="refph_'+idx+'"></div></div>'+
-    '<div style="display:flex;align-items:center;gap:8px;margin-top:4px">'+
-    '<input type="checkbox" id="'+chkId+'" class="ms-ph"'+(m.requirePhoto?' checked':'')+'>'+
-    '<label for="'+chkId+'" style="font-size:12px;color:var(--mu);cursor:pointer">📷 Podmínka: nahrát fotografii před potvrzením</label></div>';
-  d.querySelector('.msedel').addEventListener('click',function(){d.remove();renumMs();});
-  // tlačítko pro vložení nového milníku PŘED tento
-  var insertBtn=document.createElement('button');
-  insertBtn.className='btn btn-ghost';
-  insertBtn.type='button';
-  insertBtn.style.cssText='width:100%;margin-bottom:6px;font-size:11px;padding:4px;color:var(--mu);border-style:dashed;';
-  insertBtn.textContent='+ Vložit milník zde';
-  insertBtn.addEventListener('click',function(){
-    var newRow=document.createElement('div');
-    var curIdx=[...document.getElementById('aeMsList').children].indexOf(d);
-    addMsEdRowBefore(d,{title:'',desc:'',requirePhoto:false},curIdx);
-  });
-  d.insertBefore(insertBtn,d.firstChild);
-  list.appendChild(d);
-  initRefPhotos(d,idx,m.refPhotos||[]);
-  renumMs();}
-function initRefPhotos(container,idx,urls){
-  // Najdi box přímo v containeru - ne přes globální ID
-  var box=container.querySelector('.ms-ref-photos');
-  if(!box)return;
-  box.innerHTML='';
-  (urls||[]).forEach(function(url){addRefThumb(box,url);});
-  var addBtn=document.createElement('button');
-  addBtn.className='ms-ref-add';addBtn.type='button';addBtn.textContent='+';
-  addBtn.title='Přidat referenční fotku';
-  addBtn.addEventListener('click',function(){
-    var input=document.createElement('input');input.type='file';input.accept='image/*';input.multiple=true;
-    input.addEventListener('change',function(){
-      Array.from(input.files).forEach(function(file){
-        var loader=document.createElement('div');loader.className='ms-ref-loading';loader.textContent='⏳';
-        box.insertBefore(loader,addBtn);
-        var fd=new FormData();
-        fd.append('file',file);
-        fd.append('upload_preset','JCEEfactory');
-        fd.append('folder','montaz/admin_ref');
-        fetch('https://api.cloudinary.com/v1_1/dmuvpu0fz/image/upload',{method:'POST',body:fd})
-          .then(function(r){return r.json();})
-          .then(function(data){
-            loader.remove();
-            addRefThumb(box,data.secure_url);
-            box.appendChild(addBtn);
-          })
-          .catch(function(){loader.remove();alert('Chyba nahrávání fotky');});
-      });
-    });
-    input.click();
-  });
-  box.appendChild(addBtn);
-}
-function addRefThumb(box,url){
-  var wrap=document.createElement('div');wrap.className='ms-ref-thumb';
-  wrap.innerHTML='<img src="'+esc(url)+'" style="width:64px;height:64px;object-fit:cover"><button class="ms-ref-del" type="button">✕</button><input type="hidden" class="ms-ref-url" value="'+esc(url)+'">';
-  wrap.querySelector('.ms-ref-del').addEventListener('click',function(){wrap.remove();});
-  box.appendChild(wrap);
-}
-function addMsEdRowBefore(refEl,m,idx){
-  // Vytvoř nový řádek a vlož ho před refEl
-  var list=document.getElementById('aeMsList');
-  var temp=document.createElement('div');
-  list.appendChild(temp); // dočasně přidej aby addMsEdRow fungovalo
-  addMsEdRow(list,m,idx);
-  var newRow=list.lastChild;
-  list.removeChild(newRow);
-  list.removeChild(temp);
-  list.insertBefore(newRow,refEl);
-  renumMs();
-}
-function renumMs(){document.querySelectorAll('#aeMsList>div').forEach(function(d,i){var n=d.querySelector('.msednum');if(n)n.textContent='MILNÍK '+(i+1);});}
-function collectMsEditor(){return[...document.querySelectorAll('#aeMsList>div')].map(function(d){
-  var desc=d.querySelector('.ms-desc').value.trim();
-  var refUrls=[...d.querySelectorAll('.ms-ref-url')].map(function(el){return el.value;}).filter(Boolean);
-  return{title:d.querySelector('.ms-tit').value.trim(),desc:'',requirePhoto:d.querySelector('.ms-ph').checked,steps:desc.split('\n').filter(Boolean),refPhotos:refUrls};
-}).filter(function(m){return m.title;});}
-function addSimpleRow(cont,val){var d=document.createElement('div');d.className='asteprow';d.innerHTML='<textarea class="inp si" rows="2">'+esc(val)+'</textarea><button class="adelbtn">✕</button>';d.querySelector('.adelbtn').addEventListener('click',function(){d.remove();});cont.appendChild(d);}
-
-// ─── MECHANICS ADMIN ───
-function buildMechList(){
-  var list=document.getElementById('mechList');list.innerHTML='';
-  getMechs().forEach(function(m,i){
-    var row=document.createElement('div');row.className='mechrow';
-    row.innerHTML='<div class="mechav">'+esc(m.av)+'</div><div class="mechinfo"><div class="mechn">'+esc(m.name)+'</div><div class="mechpin">PIN: '+m.pin+'</div></div>'+
-      '<button class="btn btn-ghost" data-i="'+i+'" data-a="edit" style="padding:5px 10px;font-size:11px">✏</button>'+
-      '<button class="btn btn-danger" data-i="'+i+'" data-a="del" style="padding:5px 10px;font-size:11px">✕</button>';
-    row.querySelectorAll('[data-a]').forEach(function(btn){
-      btn.addEventListener('click',function(){
-        var mechs=getMechs();var i2=Number(btn.dataset.i);
-        if(btn.dataset.a==='edit')openMechModal(mechs[i2],i2);
-        if(btn.dataset.a==='del'){if(confirm('Smazat mechanika "'+mechs[i2].name+'"?')){var delMechId=mechs[i2].id;mechs.splice(i2,1);saveMechs(mechs);sbDelete('mechanics','id',delMechId);buildMechList();buildLoginGrid();}}
-      });
-    });
-    list.appendChild(row);
-  });
-}
-document.getElementById('btnNewMech').addEventListener('click',function(){openMechModal(null,null);});
-function openMechModal(m,idx){
-  document.getElementById('mechEditT').textContent=m?'👤 UPRAVIT MECHANIKA':'👤 NOVÝ MECHANIK';
-  document.getElementById('meN').value=m?m.name:'';document.getElementById('meP').value=m?m.pin:'';
-  document.getElementById('mMechEdit').classList.add('on');
-  document.getElementById('btnMESave').onclick=function(){
-    var name=document.getElementById('meN').value.trim();var pin=document.getElementById('meP').value.trim();
-    if(!name||pin.length!==4||!/^\d{4}$/.test(pin)){alert('Zadejte jméno a 4místný PIN');return;}
-    var mechs=getMechs();var av=initials(name);
-    if(idx!=null){mechs[idx].name=name;mechs[idx].pin=pin;mechs[idx].av=av;}
-    else mechs.push({id:uid(),name:name,pin:pin,av:av});
-    saveMechs(mechs);document.getElementById('mMechEdit').classList.remove('on');buildMechList();buildLoginGrid();
-  };
-}
-document.getElementById('btnMECancel').addEventListener('click',function(){document.getElementById('mMechEdit').classList.remove('on');});
-
-// ─── ISSUES ADMIN ───
-var issAdmF='all';var issAdmAsm='';
-function buildAdmIssues(){
-  var all=loadGI();var asel=document.getElementById('issAsmF');var cv=asel.value;
-  asel.innerHTML='<option value="">Všechny sestavy</option>';
-  [...new Set(all.map(function(i){return i.asmId;}))].sort().forEach(function(id){var o=document.createElement('option');o.value=id;o.textContent=id;asel.appendChild(o);});
-  asel.value=cv;renderAdmIssues(all);
-}
-document.querySelectorAll('.ifilter .fbtn2').forEach(function(b){b.addEventListener('click',function(){document.querySelectorAll('.ifilter .fbtn2').forEach(function(x){x.classList.remove('on');});b.classList.add('on');issAdmF=b.dataset.f;renderAdmIssues(loadGI());});});
-document.getElementById('issAsmF').addEventListener('change',function(){issAdmAsm=this.value;renderAdmIssues(loadGI());});
-function renderAdmIssues(all){updateIssuesBadge();
-  var f=all;
-  if(issAdmAsm)f=f.filter(function(i){return i.asmId===issAdmAsm;});
-  if(issAdmF==='open')f=f.filter(function(i){return!i.resolved;});
-  if(issAdmF==='res')f=f.filter(function(i){return i.resolved;});
-  if(issAdmF==='hi')f=f.filter(function(i){return i.priority==='hi';});
-  var list=document.getElementById('admIssList');list.innerHTML='';
-  document.getElementById('admIssEmpty').style.display=f.length?'none':'block';
-  var PLB={low:'Nízká',med:'Střední',hi:'Vysoká'};var PTAG={low:'tag-ok',med:'tag-go',hi:'tag-er'};
-  f.forEach(function(iss){
-    var d=document.createElement('div');d.className='iar';
-    d.innerHTML='<div class="iarhdr"><span class="tag '+(PTAG[iss.priority||'low'])+'">'+PLB[iss.priority||'low']+'</span>'+
-      '<span class="tag '+(iss.resolved?'tag-ok':'tag-er')+'">'+(iss.resolved?'✓ Vyřešeno':'● Otevřeno')+'</span>'+
-      (!iss.resolved?'<button class="btn btn-ghost" style="margin-left:auto;padding:3px 9px;font-size:11px" data-rid="'+iss.id+'">Vyřešit</button>':'')+
-      '</div><div class="iartxt">'+esc(iss.text)+'</div><div class="iarmeta">'+esc(iss.asmId)+' · '+esc(iss.mechName)+' · '+esc(iss.time)+' · '+esc(iss.savedAt)+'</div>';
-    var rb=d.querySelector('[data-rid]');
-    if(rb)rb.addEventListener('click',function(){var a=loadGI();var i=a.findIndex(function(x){return x.id===rb.dataset.rid;});if(i>-1){a[i].resolved=true;lsSet('gi',a);sbUpsert('issues',issueToDb(a[i]));}buildAdmIssues();});
-    list.appendChild(d);
-  });
-}
-
-// ─── LOG ───
-function exportPDF(rec){
-  var cfg=getAsmCfg(rec.asmId);
-  var PLB={low:'Nízká',med:'Střední',hi:'Vysoká'};
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Report '+rec.asmId+'</title>';
-  html+='<style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:32px;max-width:900px;margin:0 auto;}';
-  html+='.header{border-bottom:3px solid #f0a500;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end;}';
-  html+='.title{font-size:22px;font-weight:700;}.sub{font-size:13px;color:#666;margin-top:4px;}';
-  html+='.badge{display:inline-block;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:700;background:#f0a500;color:#fff;}';
-  html+='.section{margin-bottom:24px;}.section-title{font-size:14px;font-weight:700;color:#f0a500;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #eee;}';
-  html+='.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}';
-  html+='.meta-box{background:#f8f8f8;border-radius:8px;padding:12px;}.meta-lbl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}.meta-val{font-size:15px;font-weight:700;}';
-  html+='.ms-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f0f0f0;}.ms-num{width:24px;height:24px;border-radius:50%;background:#f0a500;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}';
-  html+='.iss-item{padding:8px 12px;border-radius:6px;margin-bottom:6px;border-left:4px solid #ccc;}';
-  html+='.iss-hi{border-color:#dc2626;background:#fff5f5;}.iss-med{border-color:#f0a500;background:#fffbf0;}.iss-low{border-color:#22c993;background:#f0fdf4;}';
-  html+='.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}.photo-item img{width:100%;border-radius:6px;border:1px solid #eee;}';
-  html+='.footer{margin-top:32px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#999;text-align:center;}';
-  html+='@media print{body{padding:16px;}}</style></head><body>';
-
-  // Hlavička
-  html+='<div class="header"><div><div class="title">'+esc(rec.asmId)+' — '+esc(rec.asmName)+'</div>';
-  html+='<div class="sub">Montážní report</div></div>';
-  html+='<div><span class="badge">DOKONČENO</span></div></div>';
-
-  // Meta
-  html+='<div class="meta-grid">';
-  html+='<div class="meta-box"><div class="meta-lbl">Mechanik</div><div class="meta-val">'+esc(rec.mechanic)+'</div></div>';
-  html+='<div class="meta-box"><div class="meta-lbl">Čas montáže</div><div class="meta-val">'+esc(rec.duration)+'</div></div>';
-  html+='<div class="meta-box"><div class="meta-lbl">Datum dokončení</div><div class="meta-val">'+esc(rec.completedAt)+'</div></div>';
-  html+='</div>';
-
-  // Milníky
-  var ms=cfg.milestones||[];
-  if(ms.length){
-    html+='<div class="section"><div class="section-title">Milníky postupu</div>';
-    ms.forEach(function(m,i){
-      html+='<div class="ms-item"><div class="ms-num">'+(i+1)+'</div><div><strong>'+esc(m.title)+'</strong>';
-      if(m.steps&&m.steps.length)html+='<div style="font-size:12px;color:#666;margin-top:3px">'+m.steps.map(function(s,j){return(j+1)+'. '+esc(s);}).join(' &nbsp;|&nbsp; ')+'</div>';
-      html+='</div></div>';
-    });
-    html+='</div>';
-  }
-
-  // Problémy
-  if(rec.issues&&rec.issues.length){
-    html+='<div class="section"><div class="section-title">Hlášené problémy ('+rec.issues.length+')</div>';
-    rec.issues.forEach(function(iss){
-      var cls=iss.priority==='hi'?'iss-hi':iss.priority==='med'?'iss-med':'iss-low';
-      html+='<div class="iss-item '+cls+'"><strong>'+PLB[iss.priority||'low']+'</strong> — '+esc(iss.text);
-      html+=' <span style="color:#999;font-size:11px">'+(iss.resolved?'✓ Vyřešeno':'● Otevřeno')+'</span></div>';
-    });
-    html+='</div>';
-  }
-
-  // Fotky
-  if(rec.photoData&&rec.photoData.length){
-    html+='<div class="section"><div class="section-title">Fotodokumentace ('+rec.photoData.length+')</div>';
-    html+='<div class="photo-grid">';
-    rec.photoData.forEach(function(p,i){
-      html+='<div class="photo-item"><img src="'+p.src+'" onerror="this.style.display=\'none\'"><div style="font-size:10px;color:#999;text-align:center;margin-top:4px">Foto '+(i+1)+'</div></div>';
-    });
-    html+='</div></div>';
-  }
-
-  html+='<div class="footer">MontážApp X2 · Vygenerováno: '+new Date().toLocaleString('cs-CZ')+'</div>';
-  html+='</body></html>';
-
-  var win=window.open('','_blank');
-  if(win){win.document.write(html);win.document.close();setTimeout(function(){win.print();},500);}
-}
-
-function buildLog(){
-  var records=ls('completed',[]);var list=document.getElementById('logList');list.innerHTML='';
-  document.getElementById('logEmpty').style.display=records.length?'none':'block';
-  records.forEach(function(rec){
-    var d=document.createElement('div');d.className='logrow';
-    var logWorkers=rec.workers&&rec.workers.length>1?rec.workers.map(function(w){return w.name;}).join(', '):rec.mechanic;
-    d.innerHTML='<div class="logtit">'+esc(rec.asmId)+' — '+esc(rec.asmName)+'</div>'+
-      '<div class="logmeta">👥 '+esc(logWorkers)+' · ⏱ '+esc(rec.duration)+' · 📅 '+esc(rec.completedAt)+' · ⚠ '+rec.issues.length+' prob. · 📷 '+rec.photoCount+'</div>'+
-      '<div class="logacts"><button class="logbtn ph" data-a="ph">📷 Fotky</button><button class="logbtn" data-a="iss">📋 Problémy</button><button class="logbtn" data-a="pdf" style="border-color:var(--adm);color:var(--adm)">📄 PDF</button></div>';
-    d.querySelectorAll('[data-a]').forEach(function(btn){
-      btn.addEventListener('click',function(){
-        if(btn.dataset.a==='ph'){
-          if(!rec.photoData||!rec.photoData.length){alert('Žádné fotky');return;}
-          var win=window.open('','_blank');
-          if(win){var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fotky '+esc(rec.asmId)+'</title><style>body{font-family:sans-serif;background:#111;color:#eee;padding:24px}h1{color:#f0a500}p{color:#888;font-size:13px;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}.item{background:#222;border-radius:8px;overflow:hidden}.item img{width:100%;display:block}.meta{padding:8px;font-size:11px;color:#888}.dl{display:inline-block;margin-top:4px;padding:4px 10px;background:#00e5ff;color:#000;border-radius:4px;text-decoration:none;font-size:11px}</style></head><body>';
-            html+='<h1>'+esc(rec.asmId)+'</h1><p>'+esc(rec.mechanic)+' | '+esc(rec.completedAt)+'</p><div class="grid">';
-            rec.photoData.forEach(function(p,i){html+='<div class="item"><img src="'+p.src+'"><div class="meta">Foto '+(i+1)+' @ '+esc(p.time)+'<br><a class="dl" href="'+p.src+'" download="foto_'+i+'.jpg">⬇ Stáhnout</a></div></div>';});
-            html+='</div></body></html>';win.document.write(html);win.document.close();}
-        }
-        if(btn.dataset.a==='iss'){var PLB={low:'Nízká',med:'Střední',hi:'Vysoká'};alert('Problémy '+rec.asmId+':\n\n'+(rec.issues.length?rec.issues.map(function(i){return'['+PLB[i.priority||'low']+'] '+i.text+' — '+(i.resolved?'✓':'Otevřeno');}).join('\n'):'Žádné'));}
-        if(btn.dataset.a==='pdf'){exportPDF(rec);}
-        if(btn.dataset.a==='pdf'){exportPDF(rec);}
-      });
-    });
-    list.appendChild(d);
-  });
-}
-
-// ═══ INIT ═══
-// Cleanup: smaž staré/poškozené session záznamy při načtení stránky
-(function cleanupSessions(){
+// Načti DB z localStorage pokud existuje (nahrána přes admin.html)
+(function() {
   try {
-    var keys = Object.keys(localStorage);
-    keys.forEach(function(key){
-      if(key.startsWith('sess_')){
-        try {
-          var s = JSON.parse(localStorage.getItem(key));
-          // smaž pokud asmId je undefined, null, prázdné nebo 'undefined'
-          if(!s || !s.asmId || s.asmId === 'undefined' || s.asmId === 'null'){
-            localStorage.removeItem(key);
-          }
-        } catch(e){
-          localStorage.removeItem(key);
-        }
+    var raw = localStorage.getItem('x2_db');
+    if (raw) {
+      var localDB = JSON.parse(raw);
+      if (localDB && localDB.length > 0) {
+        DB.length = 0;
+        localDB.forEach(function(d) { DB.push(d); });
       }
-    });
-  } catch(e){}
+    }
+  } catch(e) {}
 })();
 
-buildLoginGrid();
+// ============================================================
+// VYHLEDÁVÁNÍ
+// ============================================================
 
-// Synchronizuj data ze Supabase na pozadí (login se mezitím zobrazí s lokálními daty)
-syncFromSupabase().then(function(){
-  buildLoginGrid();
-
-// ═══ TMAVÝ/SVĚTLÝ REŽIM ═══
-function applyTheme(){
-  var light=localStorage.getItem('theme')==='light';
-  document.body.classList.toggle('light',light);
-  document.querySelectorAll('.btnTheme').forEach(function(b){b.textContent=light?'☀️':'🌙';});
-}
-function toggleTheme(){
-  var light=localStorage.getItem('theme')==='light';
-  localStorage.setItem('theme',light?'dark':'light');
-  applyTheme();
-}
-document.querySelectorAll('[id^="btnTheme"]').forEach(function(b){
-  b.classList.add('btnTheme');
-  b.addEventListener('click',toggleTheme);
+// Naplň dropdown sestavami
+const assemblies = [...new Set(DB.map(d => d.Sestava))].sort();
+const select = document.getElementById('assemblyFilter');
+assemblies.forEach(a => {
+  const opt = document.createElement('option');
+  opt.value = a;
+  opt.textContent = 'Sestava ' + a;
+  select.appendChild(opt);
 });
-applyTheme();
 
-// ═══ PWA MANIFEST ═══
-(function(){
-  var manifest={
-    name:'MontážApp X2',
-    short_name:'Montáž X2',
-    description:'Výrobní montážní systém',
-    start_url:window.location.href,
-    display:'standalone',
-    background_color:'#0c0e14',
-    theme_color:'#f0a500',
-    icons:[
-      {src:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="%230c0e14"/><text x="50%" y="55%" font-size="300" text-anchor="middle" dominant-baseline="middle">⚙</text></svg>',sizes:'512x512',type:'image/svg+xml'}
-    ]
-  };
-  var blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-  var url=URL.createObjectURL(blob);
-  document.getElementById('pwa-manifest').setAttribute('href',url);
-})();
-
-// ═══ SERVICE WORKER ═══
-if('serviceWorker' in navigator){
-  var swCode='var CACHE=\'montaz-x2-v2\';'+
-    'self.addEventListener(\'install\',function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.add(self.location.href.replace(\'?\',\'\').split(\'?\')[0]);}));self.skipWaiting();});'+
-    'self.addEventListener(\'activate\',function(e){e.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));}));});'+
-    'self.addEventListener(\'fetch\',function(e){'+
-    'if(e.request.url.indexOf(\'supabase\')>-1||e.request.url.indexOf(\'cloudinary\')>-1)return;'+
-    'e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request).then(function(resp){var clone=resp.clone();caches.open(CACHE).then(function(c){c.put(e.request,clone);});return resp;}).catch(function(){return caches.match(location.href);});}));});';
-  var swBlob=new Blob([swCode],{type:'application/javascript'});
-  var swUrl=URL.createObjectURL(swBlob);
-  navigator.serviceWorker.register(swUrl,{scope:'/'}).catch(function(){});
+function search(query) {
+  const q = query.trim().toUpperCase().replace(/\s/g, '');
+  if (!q) return [];
+  const sestava = document.getElementById('assemblyFilter').value;
+  return DB.filter(d => {
+    const matchDil = d.Cislodilu.toUpperCase().includes(q);
+    const matchSestava = sestava === '' || d.Sestava === sestava;
+    return matchDil && matchSestava;
+  });
 }
 
-buildLoginGrid();
-}).catch(function(e){
-  console.error('Initial Supabase sync failed:', e);
+function showResults(results, query) {
+  const container = document.getElementById('resultsContainer');
+  const list = document.getElementById('resultsList');
+  const count = document.getElementById('resultsCount');
+  const noResults = document.getElementById('noResults');
+  const loading = document.getElementById('loading');
+
+  loading.classList.remove('active');
+
+  if (results.length === 0) {
+    container.classList.remove('active');
+    noResults.classList.add('active');
+    document.getElementById('searchedTerm').textContent = `"${query}"`;
+    return;
+  }
+
+  noResults.classList.remove('active');
+  container.classList.add('active');
+  count.textContent = `${results.length} nalezeno`;
+
+  list.innerHTML = results.map(r => `
+    <div class="result-card">
+      <div class="result-part-number">${r.Cislodilu}</div>
+      <div class="result-grid">
+        <div class="result-field">
+          <div class="result-field-label">Sestava</div>
+          <div class="result-field-value">${r.Sestava}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Podsestava</div>
+          <div class="result-field-value">${r.Podsestava}</div>
+        </div>
+        <div class="result-field highlight">
+          <div class="result-field-label">Pozice</div>
+          <div class="result-field-value">${r.Pozice}</div>
+        </div>
+        <div class="result-field">
+          <div class="result-field-label">Množství</div>
+          <div class="result-field-value">${r.Mnozstvi} ks</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Search button & Enter key
+document.getElementById('btnSearch').addEventListener('click', () => {
+  const q = document.getElementById('searchInput').value;
+  if (!q.trim()) return;
+  document.getElementById('loading').classList.add('active');
+  document.getElementById('resultsContainer').classList.remove('active');
+  document.getElementById('noResults').classList.remove('active');
+  setTimeout(() => showResults(search(q), q), 200);
+});
+
+document.getElementById('searchInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('btnSearch').click();
+});
+
+function resetApp() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('assemblyFilter').value = '';
+  document.getElementById('resultsContainer').classList.remove('active');
+  document.getElementById('noResults').classList.remove('active');
+  document.getElementById('loading').classList.remove('active');
+  document.getElementById('searchInput').focus();
+}
+
+document.getElementById('btnReset').addEventListener('click', resetApp);
+document.getElementById('btnReset2').addEventListener('click', resetApp);
+
+// ============================================================
+// KAMERA + OCR (Google Cloud Vision API)
+// ============================================================
+const VISION_API_KEY = 'AIzaSyD2X8U8cdc_GoKc_VqzlcxCFo209kBNGT0';
+const VISION_API_URL = `https://vision.googleapis.com/v1/images:annotate?key=${VISION_API_KEY}`;
+
+let stream = null;
+
+const btnCamera = document.getElementById('btnCamera');
+const cameraContainer = document.getElementById('cameraContainer');
+const btnCloseCamera = document.getElementById('btnCloseCamera');
+const btnCapture = document.getElementById('btnCapture');
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ocrStatus = document.getElementById('ocrStatus');
+const tesseractStatus = document.getElementById('tesseract-status');
+
+// Hide tesseract progress bar – not needed with Vision API
+tesseractStatus.style.display = 'none';
+
+btnCamera.addEventListener('click', async () => {
+  cameraContainer.classList.add('active');
+  btnCapture.disabled = true;
+  ocrStatus.textContent = '';
+
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
+    video.srcObject = stream;
+    await video.play();
+    btnCapture.disabled = false;
+    ocrStatus.textContent = 'Připraveno';
+  } catch (err) {
+    ocrStatus.textContent = 'Kamera nedostupná';
+    console.error(err);
+  }
+});
+
+btnCloseCamera.addEventListener('click', stopCamera);
+
+function stopCamera() {
+  if (stream) {
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+  cameraContainer.classList.remove('active');
+}
+
+btnCapture.addEventListener('click', async () => {
+  btnCapture.disabled = true;
+  ocrStatus.textContent = 'Zpracovávám...';
+
+  // Capture frame from video
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+
+  // Convert canvas to base64 (without prefix)
+  const base64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+
+  try {
+    const response = await fetch(VISION_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        requests: [{
+          image: { content: base64 },
+          features: [{ type: 'TEXT_DETECTION', maxResults: 1 }]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const annotations = data.responses?.[0]?.textAnnotations || [];
+    let found = null;
+
+    if (annotations.length > 1) {
+      const qtyAnn = annotations.find(a => a.description.toUpperCase() === 'QTY');
+      if (qtyAnn) {
+        const qtyTop = Math.min(...qtyAnn.boundingPoly.vertices.map(v => v.y || 0));
+        const qtyRight = Math.max(...qtyAnn.boundingPoly.vertices.map(v => v.x || 0));
+        let bestY = -1, bestCand = null;
+        for (const ann of annotations.slice(1)) {
+          const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
+          const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
+          const desc = ann.description.replace(/\s+/g, '').toUpperCase()
+            .replace(/^O(?=[A-Z0-9])/, '0');
+          if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 4 && annLeft < qtyRight) {
+            if (annBottom > bestY) { bestY = annBottom; bestCand = desc; }
+          }
+        }
+        if (bestCand) found = bestCand;
+      }
+    }
+
+    // Fallback
+    if (!found) {
+      const rawText = (annotations[0]?.description || '').toUpperCase().replace(/^O(?=[A-Z0-9])/gm, '0');
+      for (const part of DB) {
+        if (rawText.includes(part.Cislodilu.toUpperCase())) { found = part.Cislodilu; break; }
+      }
+    }
+
+    if (found) {
+      document.getElementById('searchInput').value = found;
+      ocrStatus.textContent = '\u2713 Nalezeno';
+      stopCamera();
+      document.getElementById('btnSearch').click();
+    } else {
+      ocrStatus.textContent = 'Nenalezeno \u2014 zadej ru\u010dn\u011b';
+      btnCapture.disabled = false;
+    }
+  } catch (err) {
+    ocrStatus.textContent = 'Chyba p\u0159ipojen\u00ed';
+    btnCapture.disabled = false;
+    console.error(err);
+  }
 });
 </script>
 </body>
