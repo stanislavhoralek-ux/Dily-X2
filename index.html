@@ -3986,19 +3986,54 @@ const DB = [
   {Cislodilu:"2520502002",Sestava:"21X133",Podsestava:"1",Pozice:"47",Mnozstvi:"6"}
 ];
 
-// Načti DB z localStorage pokud existuje (nahrána přes admin.html)
-(function() {
+
+const SUPABASE_URL = 'https://ormoqidxdgpmfunuxmhy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ybW9xaWR4ZGdwbWZ1bnV4bWh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM5MzAwNTQsImV4cCI6MjA5OTUwNjA1NH0.E96E6nQlZ_4f3TEhYEGcZiHvdAd5Midn_pLVZl_9at8';
+
+async function loadDBFromSupabase() {
   try {
-    var raw = localStorage.getItem('x2_db');
-    if (raw) {
-      var localDB = JSON.parse(raw);
-      if (localDB && localDB.length > 0) {
-        DB.length = 0;
-        localDB.forEach(function(d) { DB.push(d); });
-      }
+    let all = [];
+    let from = 0;
+    const pageSize = 1000;
+    while (true) {
+      const to = from + pageSize - 1;
+      const res = await fetch(SUPABASE_URL + '/rest/v1/dily?select=Cislodilu,Sestava,Podsestava,Pozice,Mnozstvi&order=id', {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Range': from + '-' + to,
+          'Range-Unit': 'items'
+        }
+      });
+      const page = await res.json();
+      if (!Array.isArray(page) || page.length === 0) break;
+      all = all.concat(page);
+      if (page.length < pageSize) break;
+      from += pageSize;
     }
-  } catch(e) {}
-})();
+    if (all.length > 0) {
+      DB.length = 0;
+      all.forEach(d => DB.push(d));
+      console.log('Supabase: načteno ' + DB.length + ' dílů');
+    }
+  } catch(e) {
+    console.warn('Supabase nedostupná, používám lokální DB:', e);
+  }
+}
+
+// Spusť načítání ze Supabase při startu — pak inicializuj UI
+loadDBFromSupabase().then(() => {
+  // Naplň filtr sestav po načtení
+  const asmSelect = document.getElementById('assemblyFilter');
+  const current = asmSelect.value;
+  while (asmSelect.options.length > 1) asmSelect.remove(1);
+  [...new Set(DB.map(d => d.Sestava))].sort().forEach(a => {
+    const o = document.createElement('option');
+    o.value = a; o.textContent = a;
+    asmSelect.appendChild(o);
+  });
+  asmSelect.value = current;
+});
 
 // ============================================================
 // VYHLEDÁVÁNÍ
@@ -4019,7 +4054,7 @@ function search(query) {
   if (!q) return [];
   const sestava = document.getElementById('assemblyFilter').value;
   return DB.filter(d => {
-    const matchDil = d.Cislodilu.toUpperCase().includes(q);
+    const matchDil = d.Cislodilu.toUpperCase() === q;
     const matchSestava = sestava === '' || d.Sestava === sestava;
     return matchDil && matchSestava;
   });
@@ -4171,25 +4206,52 @@ btnCapture.addEventListener('click', async () => {
     });
 
     const data = await response.json();
+    console.log('Vision raw response:', JSON.stringify(data).substring(0, 500));
     const annotations = data.responses?.[0]?.textAnnotations || [];
+    console.log('Annotations count:', annotations.length);
+    if (annotations.length > 0) console.log('First annotation:', annotations[0]?.description?.substring(0, 200));
     let found = null;
 
     if (annotations.length > 1) {
       const qtyAnn = annotations.find(a => a.description.toUpperCase() === 'QTY');
       if (qtyAnn) {
         const qtyTop = Math.min(...qtyAnn.boundingPoly.vertices.map(v => v.y || 0));
+        const qtyBottom = Math.max(...qtyAnn.boundingPoly.vertices.map(v => v.y || 0));
         const qtyRight = Math.max(...qtyAnn.boundingPoly.vertices.map(v => v.x || 0));
-        let bestY = -1, bestCand = null;
+        const rowHeight = qtyBottom - qtyTop;
+
+        // Najdi token těsně nad QTY který začíná číslicí — bez omezení na left < qtyRight
+        let bestRowY = -1;
         for (const ann of annotations.slice(1)) {
           const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
-          const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
-          const desc = ann.description.replace(/\s+/g, '').toUpperCase()
-            .replace(/^O(?=[A-Z0-9])/, '0');
-          if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 4 && annLeft < qtyRight) {
-            if (annBottom > bestY) { bestY = annBottom; bestCand = desc; }
+          const desc = ann.description.replace(/\s+/g, '').toUpperCase().replace(/^O(?=[A-Z0-9])/, '0');
+          if (annBottom < qtyTop && /^\d/.test(desc) && desc.length >= 2) {
+            if (annBottom > bestRowY) bestRowY = annBottom;
           }
         }
-        if (bestCand) found = bestCand;
+
+        // Vezmi pouze první token na řádku který začíná číslicí — to je číslo dílu
+        if (bestRowY > -1) {
+          const rowTokens = [];
+          for (const ann of annotations.slice(1)) {
+            const annBottom = Math.max(...ann.boundingPoly.vertices.map(v => v.y || 0));
+            const annLeft = Math.min(...ann.boundingPoly.vertices.map(v => v.x || 0));
+            if (Math.abs(annBottom - bestRowY) <= rowHeight * 2) {
+              rowTokens.push({
+                left: annLeft,
+                text: ann.description.replace(/\s+/g, '').toUpperCase().replace(/^O(?=[A-Z0-9])/, '0')
+              });
+            }
+          }
+          rowTokens.sort((a, b) => a.left - b.left);
+          // Vezmi POUZE první token který začíná číslicí
+          for (const t of rowTokens) {
+            if (/^\d/.test(t.text) && t.text.length >= 4) {
+              found = t.text;
+              break;
+            }
+          }
+        }
       }
     }
 
